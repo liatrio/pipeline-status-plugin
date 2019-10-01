@@ -5,12 +5,15 @@ pipeline {
   agent any
   stages {
     stage('Gradle build and deploy') {
+      agent {
+        label "lead-toolchain-maven"
+      }
       steps {
         notifyPipelineStart([Jenkinsfile: 'Jenkinsfile'])
         notifyStageStart()
-//        withCredentials([usernamePassword(credentialsId: 'Artifactory', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-          sh 'gradle artifactoryPublish '
-//        }
+        container('maven') {
+          sh 'mvn package'
+        }
       }
       post {
         success {
