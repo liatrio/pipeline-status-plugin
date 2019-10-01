@@ -1,1 +1,1 @@
-buildPlugin()
+gradleBuildAndDeploy()

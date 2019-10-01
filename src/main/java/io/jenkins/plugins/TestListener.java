@@ -21,12 +21,6 @@ public class TestListener implements GraphListener {
         log.info(flowNode.toString());
     }
 
-    /**
-     * Determines if a FlowNode describes a stage
-     *
-     * @param node node of a workflow
-     * @return true if it's a stage node; false otherwise
-     */
     private static boolean isStage(FlowNode node) {
         return node != null && ((node.getAction(StageAction.class) != null)
                 || (node.getAction(LabelAction.class) != null && node.getAction(ThreadNameAction.class) == null));
