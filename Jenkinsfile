@@ -1,5 +1,4 @@
-//library 'pipeline-library'
-//library 'LEAD'
+library 'pipeline-library', 'LEAD'
 
 pipeline {
   agent any
