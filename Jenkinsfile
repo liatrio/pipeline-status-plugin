@@ -1,4 +1,4 @@
-library 'pipeline-library'
+//library 'pipeline-library'
 library 'LEAD'
 
 pipeline {
@@ -8,7 +8,9 @@ pipeline {
       steps {
         notifyPipelineStart([Jenkinsfile: 'Jenkinsfile'])
         notifyStageStart()
-        gradleBuildAndDeploy()
+        withCredentials([usernamePassword(credentialsId: 'Artifactory', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+          sh 'gradle artifactoryPublish '
+        }
       }
       post {
         success {
