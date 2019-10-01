@@ -8,9 +8,9 @@ pipeline {
       steps {
         notifyPipelineStart([Jenkinsfile: 'Jenkinsfile'])
         notifyStageStart()
-        withCredentials([usernamePassword(credentialsId: 'Artifactory', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+//        withCredentials([usernamePassword(credentialsId: 'Artifactory', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
           sh 'gradle artifactoryPublish '
-        }
+//        }
       }
       post {
         success {
