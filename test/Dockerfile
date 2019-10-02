@@ -13,4 +13,3 @@ RUN touch /var/jenkins_home/plugins/pipeline-status-plugin.hpi.pinned
 # use CasC for initial job setup
 ENV CASC_JENKINS_CONFIG=/var/jenkins_home/casc/
 COPY --chown=jenkins:jenkins test/casc/ /var/jenkins_home/casc/
-RUN ls -lsah /var/jenkins_home/casc/

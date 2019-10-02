@@ -19,6 +19,13 @@ public class TestListener implements GraphListener {
     @Override
     public void onNewHead(FlowNode flowNode) {
         log.info(flowNode.toString());
+
+        System.out.println("");
+        System.out.println("**********************************");
+        System.out.println("*********      HERE      *********");
+        System.out.println("**********************************");
+        System.out.println("");
+
     }
 
     private static boolean isStage(FlowNode node) {
