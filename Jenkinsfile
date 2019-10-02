@@ -8,6 +8,9 @@ pipeline {
       agent {
         label "lead-toolchain-maven"
       }
+      when {
+        branch 'master'
+      }
       steps {
         notifyPipelineStart([Jenkinsfile: 'Jenkinsfile'])
         notifyStageStart()
