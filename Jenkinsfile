@@ -4,7 +4,7 @@ library 'LEAD'
 pipeline {
   agent any
   stages {
-    stage('Gradle build and deploy') {
+    stage('Maven Package and Deploy') {
       agent {
         label "lead-toolchain-maven"
       }
@@ -12,7 +12,7 @@ pipeline {
         notifyPipelineStart([Jenkinsfile: 'Jenkinsfile'])
         notifyStageStart()
         container('maven') {
-          sh 'mvn package'
+          sh 'mvn package deploy'
         }
       }
       post {
