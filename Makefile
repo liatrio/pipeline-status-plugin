@@ -13,5 +13,5 @@ clean:
 
 .PHONY: test
 test:
-	docker build --no-cache -t jenkins-tester .
+	docker build -t jenkins-tester -f test/Dockerfile .
 	docker run -p 8080:8080 jenkins-tester
