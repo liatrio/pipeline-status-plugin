@@ -1,4 +1,4 @@
-FROM jenkins/jenkins:lts
+FROM liatrio/jenkins-alpine
 
 ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false"
 
