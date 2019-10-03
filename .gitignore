@@ -7,3 +7,8 @@ work
 .gradle
 build
 gradle
+.project
+.settings/
+.classpath
+.factorypath
+.vscode
