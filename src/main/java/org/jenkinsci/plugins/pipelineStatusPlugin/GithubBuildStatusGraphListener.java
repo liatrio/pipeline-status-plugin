@@ -24,6 +24,7 @@
 package org.jenkinsci.plugins.pipelineStatusPlugin;
 
 import hudson.Extension;
+import hudson.ExtensionList;
 import hudson.model.Queue;
 import hudson.model.Run;
 import java.io.IOException;
@@ -34,6 +35,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.CheckForNull;
 import net.sf.json.JSONObject;
+import org.jenkinsci.plugins.displayurlapi.DisplayURLProvider;
+import org.jenkinsci.plugins.pipelineStatusPlugin.notifiers.BuildNotifier;
 import org.jenkinsci.plugins.pipelineStatusPlugin.notifiers.BuildState;
 import org.jenkinsci.plugins.pipeline.StageStatus;
 import org.jenkinsci.plugins.pipeline.modeldefinition.actions.ExecutionModelAction;
@@ -44,6 +47,7 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTOption;
 import org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTOptions;
 import org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage;
 import org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStages;
+import org.jenkinsci.plugins.pipelineStatusPlugin.notifiers.ConsoleNotifier;
 import org.jenkinsci.plugins.workflow.actions.ErrorAction;
 import org.jenkinsci.plugins.workflow.flow.GraphListener;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
@@ -56,6 +60,7 @@ import org.jenkinsci.plugins.workflow.cps.nodes.StepAtomNode;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepEndNode;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepStartNode;
 import org.jenkinsci.plugins.workflow.flow.FlowExecution;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 /**
  * GraphListener implementation which provides status (pending, error or
@@ -215,85 +220,77 @@ public class GithubBuildStatusGraphListener implements GraphListener {
      * @param flowNode node of a workflow
      */
     private static void checkEnableBuildStatus(FlowNode flowNode) {
-//        FlowExecution exec = flowNode.getExecution();
-//        try {
-//            BuildStatusAction buildStatusAction = buildStatusActionFor(exec);
-//
-//            Run<?, ?> run = runFor(exec);
-//            if (null == run) {
-//                log(Level.INFO, "Could not find Run - status will not be provided for this build");
-//                return;
-//            }
-//            log(Level.INFO, "Processing build %s", run.getFullDisplayName());
-//
-//            // Declarative pipeline jobs come with a nice execution model, which allows you
-//            // to get all of the stages at once at the beginning of the kob.
-//            // Older scripted pipeline jobs do not, so we have to add them one at a
-//            // time as we discover them.
-//            List<BuildStageModel> stageNames = getDeclarativeStages(run);
-//            boolean isDeclarativePipeline = stageNames != null;
-//
-//            if (isDeclarativePipeline && buildStatusAction != null) {
-//                return;
-//            }
-//            if (stageNames == null) {
-//                ArrayList<BuildStageModel> stageNameList = new ArrayList<>();
-//                stageNameList.add(new BuildStageModel(flowNode.getDisplayName()));
-//                stageNames = stageNameList;
-//            }
-//
-//            String targetUrl;
-//            try {
-//                targetUrl = DisplayURLProvider.get().getRunURL(run);
-//            } catch (Exception e) {
-//                targetUrl = "";
-//            }
-//
-//            if (buildStatusAction == null) {
-//                buildStatusAction = new BuildStatusAction(run, targetUrl, stageNames);
-//                buildStatusAction.setIsDeclarativePipeline(isDeclarativePipeline);
-//
-//                String repoOwner = "";
-//                String repoName = "";
-//                String branchName = "";
+        FlowExecution exec = flowNode.getExecution();
+        BuildStatusAction buildStatusAction = buildStatusActionFor(exec);
+
+        Run<?, ?> run = runFor(exec);
+        if (null == run) {
+            log(Level.INFO, "Could not find Run - status will not be provided for this build");
+            return;
+        }
+        log(Level.INFO, "Processing build %s", run.getFullDisplayName());
+
+        // Declarative pipeline jobs come with a nice execution model, which allows you
+        // to get all of the stages at once at the beginning of the kob.
+        // Older scripted pipeline jobs do not, so we have to add them one at a
+        // time as we discover them.
+        List<BuildStageModel> stageNames = getDeclarativeStages(run);
+        boolean isDeclarativePipeline = stageNames != null;
+
+        if (isDeclarativePipeline && buildStatusAction != null) {
+            return;
+        }
+        if (stageNames == null) {
+            ArrayList<BuildStageModel> stageNameList = new ArrayList<>();
+            stageNameList.add(new BuildStageModel(flowNode.getDisplayName()));
+            stageNames = stageNameList;
+        }
+
+        String targetUrl;
+        try {
+            targetUrl = DisplayURLProvider.get().getRunURL(run);
+        } catch (Exception e) {
+            targetUrl = "";
+        }
+
+        if (buildStatusAction == null) {
+            buildStatusAction = new BuildStatusAction(run, targetUrl, stageNames);
+            buildStatusAction.setIsDeclarativePipeline(isDeclarativePipeline);
+
+            String repoOwner = "";
+            String repoName = "";
+            String branchName = "";
 //                GithubNotificationConfig githubConfig = GithubNotificationConfig.fromRun(run, exec.getOwner().getListener());
 //                if (githubConfig != null) {
 //                    buildStatusAction.addGithubNotifier(githubConfig);
+            buildStatusAction.addGenericNofifier(new ConsoleNotifier());
 //                    repoOwner = githubConfig.getRepoOwner();
 //                    repoName = githubConfig.getRepoName();
 //                    branchName = githubConfig.getBranchName();
 //                } else {
-//                    if (run instanceof WorkflowRun) {
-//                        repoName = run.getParent().getDisplayName();
-//                        repoOwner = run.getParent().getParent().getFullName();
-//                    }
+                if (run instanceof WorkflowRun) {
+                    repoName = run.getParent().getDisplayName();
+                    repoOwner = run.getParent().getParent().getFullName();
+                }
 //                }
-//                buildStatusAction.setRepoOwner(repoOwner);
-//                buildStatusAction.setRepoName(repoName);
-//                buildStatusAction.setBranchName(branchName);
+            buildStatusAction.setRepoOwner(repoOwner);
+            buildStatusAction.setRepoName(repoName);
+            buildStatusAction.setBranchName(branchName);
 //                buildStatusAction.addInfluxDbNotifier(
 //                        InfluxDbNotifierConfig.fromGlobalConfig(repoOwner, repoName, branchName));
 //                StatsdNotifierConfig statsd = StatsdNotifierConfig.fromGlobalConfig(run.getExternalizableId());
 //                if (statsd != null) {
 //                    buildStatusAction.addStatsdNotifier(statsd);
 //                }
-//                ExtensionList<BuildNotifier> list = BuildNotifier.all();
-//                for (BuildNotifier notifier : list) {
-//                    buildStatusAction.addGenericNofifier(notifier);
-//                }
-//
-//                run.addAction(buildStatusAction);
-//            } else {
-//                buildStatusAction.addBuildStatus(flowNode.getDisplayName());
-//            }
-//        } catch (IOException ex) {
-//            try {
-//                exec.getOwner().getListener().getLogger().println(ex.toString());
-//            } catch (IOException ex1) {
-//                Logger.getLogger(GithubBuildStatusGraphListener.class.getName()).log(Level.SEVERE, null, ex1);
-//            }
-//            Logger.getLogger(GithubBuildStatusGraphListener.class.getName()).log(Level.SEVERE, null, ex);
-//        }
+            ExtensionList<BuildNotifier> list = BuildNotifier.all();
+            for (BuildNotifier notifier : list) {
+                buildStatusAction.addGenericNofifier(notifier);
+            }
+
+            run.addAction(buildStatusAction);
+        } else {
+            buildStatusAction.addBuildStatus(flowNode.getDisplayName());
+        }
     }
 
     /**

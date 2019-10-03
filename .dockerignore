@@ -1,0 +1,5 @@
+work
+.git
+target/jenkins-for-test
+target/target/test-classes
+target/surefire-reports
