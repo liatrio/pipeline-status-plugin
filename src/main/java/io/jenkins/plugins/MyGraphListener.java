@@ -30,7 +30,7 @@ public class MyGraphListener implements GraphListener {
             if (stepNode.isBody() && stepNode.getStepName().equals("Stage")) {
                 log.info("");
                 log.info("### Starting Stage for " + stepNode.getDisplayName() + " (" + stepNode.getId() + ") ###");
-                log.info("displayName: " + stepNode.getDisplayName());
+                log.info("Display Name: " + stepNode.getDisplayName());
                 log.info("### /Starting Stage ###");
                 Ids.add(stepNode.getId());
                 log.info("");
@@ -45,7 +45,7 @@ public class MyGraphListener implements GraphListener {
             log.info("### Ending Stage for " +
                     ((StepEndNode) flowNode).getStartNode().getDisplayName() +
                     " (" + ((StepEndNode) flowNode).getStartNode().getId() + ") ###");
-            log.info("getDisplayName()(): '" + endNode.getDisplayName() + "'");
+            log.info("Display Name: '" + endNode.getDisplayName() + "'");
             log.info("### /Ending Stage ###");
             log.info("");
         }

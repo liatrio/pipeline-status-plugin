@@ -18,7 +18,7 @@ test:
 
 .PHONY: localmvn
 localmvn:
-	@mvn clean package
+	@gradle clean jpi
 
 .PHONY: run
 run: localmvn test
