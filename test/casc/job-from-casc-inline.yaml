@@ -22,7 +22,7 @@ jobs:
                    stage ('Stage3') {
                      steps {
                        sh "sleep 5"
-                       echo "Hello from 3!"
+                       error "Error from 3!"
                      }
                    }
                 }
