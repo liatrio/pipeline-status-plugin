@@ -19,22 +19,9 @@ import java.util.logging.Logger;
 public class MyGraphListener implements GraphListener {
     private static Logger log = Logger.getLogger(MyGraphListener.class.getName());
 
+
     @Override
     public void onNewHead(FlowNode flowNode) {
-
-        LabelAction labelAction = flowNode.getAction(LabelAction.class);
-        if(labelAction != null){
-            log.info("### Label Action ###");
-            log.info("Is ThreadNameAction null?: " + String.valueOf(flowNode.getAction(ThreadNameAction.class) == null));
-
-            log.info("Label Action Display Name " + labelAction.getDisplayName());
-            log.info("Class Name: " + flowNode.getClass().toString());
-
-            log.info("### Label Action ###");
-        }
-
-
-
 
         if (flowNode.getClass() == StepStartNode.class) {
             StepStartNode stepNode = (StepStartNode) flowNode;
@@ -63,7 +50,7 @@ public class MyGraphListener implements GraphListener {
             log.info("Start Node below here:");
             log.info("startNode class: " + startNode.getClass().toString());
             log.info("getDisplayName(): '" + startNode.getDisplayName() + "'");
-            log.info("getId()'" + startNode.getId() + "'");
+            log.info("getId(): '" + startNode.getId() + "'");
             log.info("getDisplayFunctionName(): '" + startNode.getDisplayFunctionName() + "'");
             if(startNode.getClass() == StepStartNode.class){
                 StepStartNode stepStartNode = (StepStartNode) startNode;
@@ -72,22 +59,5 @@ public class MyGraphListener implements GraphListener {
             log.info("### /Ending Stage ###");
             log.info("");
         }
-
-
-//        log.info("");
-//        log.info("**********************************");
-//        log.info("**********   FLOW NODE   *********");
-//        log.info("Name: " + flowNode.getDisplayName());
-//        log.info("Class: " + flowNode.getClass().toString());
-//        log.info("Execution: " + flowNode.getExecution());
-//        log.info("Display function name: " + flowNode.getDisplayFunctionName());
-//        try {
-//            log.info("Url: " + flowNode.getUrl());
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        log.info("**********************************");
-//        log.info("");
-
     }
 }
