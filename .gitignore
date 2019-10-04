@@ -12,3 +12,4 @@ gradle
 .classpath
 .factorypath
 .vscode
+bin/main/index.jelly
