@@ -1,11 +1,10 @@
-.PHONY: test
 test:
-	docker build -t jenkins-tester -f test/Dockerfile .
+	docker build -t jenkins-tester .
 	docker run -p 8080:8080 jenkins-tester
 
-.PHONY: build
 build:
 	@gradle clean jpi
 
-.PHONY: run
 run: build test
+
+.PHONY: build test run

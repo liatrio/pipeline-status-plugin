@@ -46,7 +46,6 @@ public class PipelineStatusGraphListener implements GraphListener {
             }
 
             StepEndNode endNode = (StepEndNode) flowNode;
-            BlockStartNode startNode = endNode.getStartNode();
             log.info("");
             log.info("### Ending Stage for " +
                     ((StepEndNode) flowNode).getStartNode().getDisplayName() +

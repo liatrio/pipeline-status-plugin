@@ -12,7 +12,7 @@ pipeline {
         notifyPipelineStart([Jenkinsfile: 'Jenkinsfile'])
         notifyStageStart()
         container('maven') {
-          sh 'mvn package deploy'
+          sh 'mvn package'
         }
       }
       post {
