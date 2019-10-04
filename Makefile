@@ -1,10 +1,10 @@
 test:
-	docker build -t jenkins-tester .
-	docker run -p 8080:8080 jenkins-tester
+	@mvn test
 
 build:
-	@gradle clean jpi
+	@mvn package
 
-run: build test
+run: 
+	@mvn hpi:run
 
 .PHONY: build test run
