@@ -1,16 +1,19 @@
 # pipeline-status-plugin
 
-### How to Use Gradle
+### Build
 
-```shell
-# List gradle tasks (not all will work for this project)
-./gradlew tasks
+```
+mvn package
+```
 
-# Assemble the java project (download dependencies and compile)
-./gradlew assemble
+### Test
 
-# Clean project workspace
-./gradlew clean
+```
+mvn test
+```
 
-# Generate .hpi package for publication
-./gradlew jpi
+### Run
+
+```
+mvn hpi:run
+```

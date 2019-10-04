@@ -1,11 +1,10 @@
-.PHONY: test
 test:
-	docker build -t jenkins-tester -f test/Dockerfile .
-	docker run -p 8080:8080 jenkins-tester
+	@mvn test
 
-.PHONY: build
 build:
-	@gradle clean jpi
+	@mvn package
 
-.PHONY: run
-run: build test
+run: 
+	@mvn hpi:run
+
+.PHONY: build test run
