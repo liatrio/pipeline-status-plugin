@@ -4,15 +4,15 @@ library 'LEAD'
 pipeline {
   agent any
   stages {
-    stage('Maven Package and Deploy') {
+    stage('Gradle Package and Deploy') {
       agent {
         label "lead-toolchain-maven"
       }
       steps {
         notifyPipelineStart([Jenkinsfile: 'Jenkinsfile'])
         notifyStageStart()
-        container('maven') {
-          sh 'mvn package'
+        container('gradle') {
+          sh 'gradle clean assemble test'
         }
       }
       post {
