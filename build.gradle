@@ -8,15 +8,10 @@ plugins {
 }
 
 repositories {
-    maven {
-        url = 'https://repo.jenkins-ci.org/public/'
-    }
+    // Keep jenkins host in first place
+    maven { url = 'https://repo.jenkins-ci.org/public/' }
+    maven { url = 'http://repo.maven.apache.org/maven2' }
 
-    maven {
-        url = 'http://repo.maven.apache.org/maven2'
-    }
-
-    mavenLocal()
     jcenter()
 
 }
@@ -49,7 +44,6 @@ jenkinsPlugin {
     // optional version number from which this plugin release is configuration-compatible
     compatibleSinceVersion = '1.1.0'
 
-
     // URL used to deploy the plugin, defaults to the value shown
     repoUrl = 'https://repo.jenkins-ci.org/releases'
     // URL used to deploy snapshots of the plugin, defaults to the value shown
@@ -60,7 +54,6 @@ jenkinsPlugin {
 
     configureRepositories = false
     configurePublishing = false
-
 
     // the developers section is optional, and corresponds to the POM developers section
     developers {
@@ -109,10 +102,10 @@ githubRelease {
     prerelease false
 
     // Find jar file for upload to github release
-    FilenameFilter filter = { dir, filename -> filename.contains(project.version) }
+    FilenameFilter filter = { dir, filename -> filename.matches(/.*(hpi|jar)/) }
     releaseAssets= jar.destinationDir.listFiles(filter)
     
-    overwrite false // if true, will delete an existing release with the same tag and name
+    overwrite true // if true, will delete an existing release with the same tag and name
     apiEndpoint 'https://api.github.com'
 }
 
