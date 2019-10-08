@@ -1,9 +1,7 @@
 
 plugins {
     id 'java'
-    id 'groovy'
     id 'org.jenkins-ci.jpi' version '0.33.0'
-    // Publish to GitHub
     id 'com.github.breadmoirai.github-release' version '2.2.9'
 }
 
@@ -17,7 +15,7 @@ repositories {
 }
 
 group = 'io.jenkins.plugins'
-version = '0.1.1'
+version = '0.1.2'
 description = 'Pipeline Status Plugin'
 sourceCompatibility = '1.8'
 
@@ -78,9 +76,9 @@ dependencies {
     // For more info on jenkins Dependencies: https://github.com/jenkinsci/gradle-jpi-plugin
     jenkinsPlugins  'org.jenkinsci.plugins:pipeline-model-definition:1.3.9'
 
-    jenkinsTest 'org.jenkins-ci.main:jenkins-test-harness:2.55',
-                'org.jenkins-ci.plugins:cloudbees-folder:6.9',
-                "org.jenkins-ci.main:jenkins-war:${jenkinsVersion}"
+    jenkinsTest     'org.jenkins-ci.main:jenkins-test-harness:2.55',
+                    'org.jenkins-ci.plugins:cloudbees-folder:6.9',
+                    "org.jenkins-ci.main:jenkins-war:${jenkinsVersion}"
 
     jenkinsServer   "org.jenkins-ci.main:jenkins-war:${jenkinsVersion}",
                     'org.jenkins-ci.plugins:cloudbees-folder:6.9',
@@ -91,6 +89,7 @@ def githubAccessToken = System.getenv('GITHUB_ACCESS_TOKEN')
 ext.releaseToken = githubAccessToken ? githubAccessToken : 'mygithubpersonalaccesstoken'
 
 githubRelease {
+    // For more information on gradle github release: https://github.com/BreadMoirai/github-release-gradle-plugin
     token releaseToken
     owner 'johnknapprs'
     repo 'pipeline-status-plugin'
@@ -101,7 +100,6 @@ githubRelease {
     draft false
     prerelease false
 
-    // Find jar file for upload to github release
     FilenameFilter filter = { dir, filename -> filename.matches(/.*(hpi|jar)/) }
     releaseAssets= jar.destinationDir.listFiles(filter)
     
