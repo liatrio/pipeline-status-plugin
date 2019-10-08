@@ -91,7 +91,7 @@ ext.releaseToken = githubAccessToken ? githubAccessToken : 'mygithubpersonalacce
 githubRelease {
     // For more information on gradle github release: https://github.com/BreadMoirai/github-release-gradle-plugin
     token releaseToken
-    owner 'johnknapprs'
+    owner 'liatrio'
     repo 'pipeline-status-plugin'
     tagName "v${project.version}"
     targetCommitish 'master'
