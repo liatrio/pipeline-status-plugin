@@ -22,7 +22,7 @@ repositories {
 }
 
 group = 'io.jenkins.plugins'
-version = '0.1.0'
+version = '0.1.1'
 description = 'Pipeline Status Plugin'
 sourceCompatibility = '1.8'
 
@@ -112,8 +112,7 @@ githubRelease {
     FilenameFilter filter = { dir, filename -> filename.contains(project.version) }
     releaseAssets= jar.destinationDir.listFiles(filter)
     
-    // releaseAssets jar.destinationDir.listFiles // this points to which files you want to upload as assets with your release
-    overwrite true // if true, will delete an existing release with the same tag and name
+    overwrite false // if true, will delete an existing release with the same tag and name
     apiEndpoint 'https://api.github.com'
 }
 
