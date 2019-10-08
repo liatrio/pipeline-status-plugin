@@ -2,7 +2,6 @@
 plugins {
     id 'java'
     id 'groovy'
-    id 'maven-publish'
     id 'org.jenkins-ci.jpi' version '0.33.0'
     // Publish to GitHub
     id 'com.github.breadmoirai.github-release' version '2.2.9'
@@ -95,11 +94,12 @@ dependencies {
                     'org.jenkins-ci.plugins:junit:1.6'
 }
 
-
+def githubAccessToken = System.getenv('GITHUB_ACCESS_TOKEN')
+ext.releaseToken = githubAccessToken ? githubAccessToken : 'mygithubpersonalaccesstoken'
 
 githubRelease {
-    token 'myToken'
-    owner 'liatrio'
+    token releaseToken
+    owner 'johnknapprs'
     repo 'pipeline-status-plugin'
     tagName "v${project.version}"
     targetCommitish 'master'
@@ -107,10 +107,13 @@ githubRelease {
     body "" 
     draft false
     prerelease false
-    // FilenameFilter filter = { dir, filename -> filename.contains(project.version) }
-    // releaseAssets= jar.destinationDir.listFiles filter
+
+    // Find jar file for upload to github release
+    FilenameFilter filter = { dir, filename -> filename.contains(project.version) }
+    releaseAssets= jar.destinationDir.listFiles(filter)
+    
     // releaseAssets jar.destinationDir.listFiles // this points to which files you want to upload as assets with your release
-    overwrite false // if true, will delete an existing release with the same tag and name
+    overwrite true // if true, will delete an existing release with the same tag and name
     apiEndpoint 'https://api.github.com'
 }
 
