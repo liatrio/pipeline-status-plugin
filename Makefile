@@ -1,10 +1,13 @@
 test:
-	@mvn test
+	@gradle clean build
 
 build:
-	@mvn package
+	@gradle clean assemble
 
 run: 
-	@mvn hpi:run
+	@gradle clean server
+
+deploy:
+	@gradle clean build githubRelease
 
 .PHONY: build test run

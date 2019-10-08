@@ -1,19 +1,25 @@
 # pipeline-status-plugin
 
+### Install Gradle
+
+```SHELL
+brew install gradle
+```
+
 ### Build
 
 ```
-mvn package
+gradle clean assemble
 ```
 
 ### Test
 
 ```
-mvn test
+gradle clean test
 ```
 
 ### Run
 
 ```
-mvn hpi:run
+gradle clean server
 ```
