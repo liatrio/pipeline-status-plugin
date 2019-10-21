@@ -8,6 +8,12 @@ import org.jenkinsci.plugins.workflow.flow.GraphListener;
 import org.jenkinsci.plugins.workflow.graph.BlockStartNode;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
 
+import groovy.util.logging.Log;
+import io.kubernetes.client.*;
+import io.kubernetes.client.apis.CoreV1Api;
+import io.kubernetes.client.models.*;
+import io.kubernetes.client.util.ClientBuilder;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -20,6 +26,23 @@ public class PipelineStatusGraphListener implements GraphListener {
 
     @Override
     public void onNewHead(FlowNode flowNode) {
+    log.info("not broke");
+    try {
+        ApiClient client = ClientBuilder.cluster().build();
+
+    // set the global default api-client to the in-cluster one from above
+        Configuration.setDefaultApiClient(client);
+
+    // the CoreV1Api loads default api-client from global configuration.
+        CoreV1Api api = new CoreV1Api();
+
+    // invokes the CoreV1Api client
+        V1PodList list = api.listPodForAllNamespaces(null, null, null, null, null, null, null, null, null);
+        for (V1Pod item : list.getItems()) {
+            log.info(item.getMetadata().getName());
+        }
+    } catch (Exception exception) { log.info("exception caught");}
+    
 
         if (flowNode.getClass() == StepStartNode.class) {
             StepStartNode stepNode = (StepStartNode) flowNode;
