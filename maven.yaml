@@ -17,7 +17,13 @@ spec:
     volumeMounts:
     - name: pipeline-status-plugin
       mountPath: /Users/jonr/temp/pipeline-status-plugin
+    - name: maven-cache
+      mountPath: /.m2/repository
   volumes :
   - name: pipeline-status-plugin 
     hostPath:
       path: /Users/jonr/temp/pipeline-status-plugin
+  - name: maven-cache
+    hostPath:
+      path: /.m2/repository
+
