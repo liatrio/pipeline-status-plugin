@@ -1,0 +1,6 @@
+apiVersion: "stable.liatr.io/v1"
+kind: JenkinsLog
+metadata:
+  name: event
+spec:
+  logMessage: "Stage 1 complete"

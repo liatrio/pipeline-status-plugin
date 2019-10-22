@@ -1,0 +1,34 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: logs.stable.liatr.io
+  labels:
+    app.kubernetes.io/managed-by: helm
+spec:
+  group: stable.liatr.io
+  versions:
+    - name: v1
+      served: true
+      storage: true
+  version: v1
+  scope: Namespaced
+  names:
+    plural: logs
+    singular: log
+    kind: JenkinsLog
+  validation:
+    openAPIV3Schema:
+      properties:
+        spec:
+          required: ["logMessage"]
+          properties:
+            logMessage:
+              type: string
+            nonprod_cluster_secret:
+              type: string
+            prod_cluster_secret:
+              type: string
+            toolchain_cluster_secret:
+              type: string
+            cluster_domain:
+              type: string
