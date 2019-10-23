@@ -24,11 +24,7 @@ spec:
           properties:
             logMessage:
               type: string
-            nonprod_cluster_secret:
+            stageStatus:
               type: string
-            prod_cluster_secret:
-              type: string
-            toolchain_cluster_secret:
-              type: string
-            cluster_domain:
-              type: string
+            timestamp:
+              type: string 

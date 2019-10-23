@@ -8,6 +8,11 @@ spec:
   containers:
   - name: mavenn
     image: maven:3.6.1-jdk-8
+    resources:
+      limits:
+        memory: "4000Mi"
+      requests:
+        memory: "2000Mi"
     command:
     - cat
     tty: true
@@ -16,14 +21,14 @@ spec:
       value: container-env-var-value
     volumeMounts:
     - name: pipeline-status-plugin
-      mountPath: /Users/jonr/temp/pipeline-status-plugin
+      mountPath: /liatrio/pipeline-status-plugin
     - name: maven-cache
-      mountPath: /.m2/repository
+      mountPath: /root/.m2/repository
   volumes :
   - name: pipeline-status-plugin 
     hostPath:
-      path: /Users/jonr/temp/pipeline-status-plugin
+      path: ./
   - name: maven-cache
     hostPath:
-      path: /.m2/repository
+      path: ~/.m2/repository
 
