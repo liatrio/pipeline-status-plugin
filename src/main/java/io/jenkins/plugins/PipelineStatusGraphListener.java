@@ -16,6 +16,7 @@ import io.kubernetes.client.models.*;
 import io.kubernetes.client.util.ClientBuilder;
 import io.kubernetes.client.apis.CustomObjectsApi;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,12 +41,6 @@ public class PipelineStatusGraphListener implements GraphListener {
         CoreV1Api api = new CoreV1Api();
         CustomObjectsApi apiInstance = new CustomObjectsApi();
     // invokes the CoreV1Api client
-        V1PodList list = api.listPodForAllNamespaces(null, null, null, null, null, null, null, null, null);
-        for (V1Pod item : list.getItems()) {
-            log.info(item.getMetadata().getName());
-        }
-
-    
 
         if (flowNode.getClass() == StepStartNode.class) {
             StepStartNode stepNode = (StepStartNode) flowNode;
@@ -80,6 +75,8 @@ public class PipelineStatusGraphListener implements GraphListener {
             log.info("### /Ending Stage ###");
             log.info("");
             log.info("trying to build event");
+            Instant instant = Instant.now();
+            long timeStampMillis = instant.toEpochMilli();
             String group = "stable.liatr.io"; // String | The custom resource's group name
             String version = "v1"; // String | The custom resource's version
             String namespace = "default"; // String | The custom resource's namespace
@@ -88,7 +85,7 @@ public class PipelineStatusGraphListener implements GraphListener {
                     "  \"apiVersion\": \"stable.liatr.io/v1\",\n" +
                     "  \"kind\": \"JenkinsLog\",\n" +
                     "  \"metadata\": {\n" +
-                    "    \"name\": \"event3\"\n" +
+                    "    \"name\":" + '"' + ((StepEndNode) flowNode).getStartNode().getDisplayName() + "-" + timeStampMillis + '"' + "\n" +
                     "  },\n" +
                     "  \"spec\": {\n" +
                     "    \"logMessage\": \"Stage 3 complete\"\n" +
