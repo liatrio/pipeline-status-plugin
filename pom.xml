@@ -68,6 +68,10 @@
             <version>2.9.8</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins.workflow</groupId>
+            <artifactId>workflow-job</artifactId>
+        </dependency>
     </dependencies>
     <dependencyManagement>
         <dependencies>
