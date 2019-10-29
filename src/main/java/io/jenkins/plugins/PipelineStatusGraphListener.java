@@ -38,6 +38,7 @@ public class PipelineStatusGraphListener extends StepEnvironmentContributor impl
         /*Basic sanitization of the job names, this can be expanded*/
         eventName = eventName.toLowerCase();
         eventName = eventName.replace(' ','-');
+        String jenkinsBuild = (System.getenv("GIT_BRANCH") != null) ? System.getenv("GIT_BRANCH") : "Unknown";
 
         long timestamp = Instant.now().toEpochMilli();
 
@@ -78,7 +79,7 @@ public class PipelineStatusGraphListener extends StepEnvironmentContributor impl
                 "      }\n" +
                 "   },\n" +
                 "   \"spec\": {\n" +
-                "      \"branch\": \"master\",\n" +
+                "      \"branch\": \"" + jenkinsBuild + "\",\n" +
                 "      \"build_id\": \"" + envVars.get("BUILD_ID", "1") + "\",\n" +
                 "      \"commit_id\": \"d06444448ba73a64e6f1ceff812c726b853c5e8a\",\n" +
                 "      \"commit_message\": \"ENG-941 (#3)\\n\\n* testing URLConnection lib\\r\\n\\r\\n* test\\r\\n\\r\\n*\\ncorrect function call\\r\\n\\r\\n* adding connection timeout\\r\\n\\r\\n* try catch around\\nreq\\r\\n\\r\\n* wrap more insinde try catch\\r\\n\\r\\n* adding changes to library to\\nall functions:\\r\\n\\r\\n* removing comment\\r\\n\\r\\n* removing import as it's implicit\\r\\n\\r\\n*\\nrefactor code to utilize function\\r\\n\\r\\n* simplifying function call\\r\\n\\r\\n*\\nchanging to use call syntax\\r\\n\\r\\n* adding console logs\\r\\n\\r\\n* remvoing printlns\",\n" +
