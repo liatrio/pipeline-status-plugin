@@ -10,5 +10,11 @@ pipeline {
       steps {
         sh "echo 'world'"
       }
+    }
+    stage('Print Env') {
+      steps {
+        sh "printenv"
+      }
+    }
   }
 }
