@@ -21,14 +21,14 @@ spec:
       value: container-env-var-value
     volumeMounts:
     - name: pipeline-status-plugin
-      mountPath: /liatrio/pipeline-status-plugin
+      mountPath: /pipeline-status-plugin
     - name: maven-cache
       mountPath: /root/.m2/repository
   volumes :
   - name: pipeline-status-plugin 
     hostPath:
-      path: ./
+      path: /Users/jonr/temp/pipeline-status-plugin
   - name: maven-cache
     hostPath:
-      path: ~/.m2/repository
+      path: /Users/jonr/.m2/repository
 

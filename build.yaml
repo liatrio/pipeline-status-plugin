@@ -1,0 +1,58 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: builds.stable.liatr.io
+  labels:
+    app.kubernetes.io/managed-by: helm
+spec:
+  group: stable.liatr.io
+  versions:
+    - name: v1
+      served: true
+      storage: true
+  version: v1
+  scope: Namespaced
+  names:
+    plural: builds
+    singular: build
+    kind: Build
+  validation:
+    openAPIV3Schema:
+      properties:
+        spec:
+          required: ["product", "pipeline", "start_time", "branch", "type", "commit_id", "stages", "result", "commit_message"]
+          properties:
+            product:
+              type: string
+            pipeline:
+              type: object
+              properties:
+                url:
+                  type: string
+                type:
+                  type: string
+                org:
+                  type: string
+                repo:
+                  type: string
+            start_time:
+              type: string
+              format: date-time
+            end_time:
+              type: string
+              format: date-time
+            branch:
+              type: string
+            type:
+              type: string
+            commit_id:
+              type: string
+            commit_message:
+              type: string
+            stages:
+              type: array
+              items:
+                type: string
+            result:
+              type: string
+              pattern: "(notStarted)|(inProgress)|(success)|(fail)"
