@@ -3,6 +3,8 @@ package io.jenkins.plugins;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hudson.*;
 import hudson.model.*;
+import hudson.model.Queue;
+
 import org.jenkinsci.plugins.workflow.actions.ErrorAction;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepEndNode;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepStartNode;
@@ -11,14 +13,29 @@ import org.jenkinsci.plugins.workflow.graph.FlowNode;
 
 import io.kubernetes.client.*;
 import io.kubernetes.client.util.ClientBuilder;
+import net.sf.json.JSONObject;
 import io.kubernetes.client.apis.CustomObjectsApi;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
 import org.jenkinsci.plugins.workflow.steps.StepEnvironmentContributor;
+
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 
 import org.eclipse.egit.github.core.*;
 import org.eclipse.egit.github.core.client.GitHubClient;
 import org.eclipse.egit.github.core.service.CommitService;
 import org.eclipse.egit.github.core.service.RepositoryService;
+
+import org.jenkinsci.plugins.github.status.sources.BuildDataRevisionShaSource;
+import org.jenkinsci.plugins.githubautostatus.GithubBuildStatusGraphListener;
+import org.jenkinsci.plugins.githubautostatus.model.BuildStage;
+import org.jenkinsci.plugins.pipeline.modeldefinition.actions.ExecutionModelAction;
+import org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTEnvironment;
+import org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKeyValueOrMethodCallPair;
+import org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTMethodArg;
+import org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTOption;
+import org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTOptions;
+import org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStage;
+import org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStages;
 
 import javax.annotation.Nonnull;
 import java.io.*;
@@ -27,6 +44,7 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.logging.Level;
 
 @Extension
 public class PipelineStatusGraphListener extends StepEnvironmentContributor implements GraphListener {
@@ -41,16 +59,17 @@ public class PipelineStatusGraphListener extends StepEnvironmentContributor impl
         envVars = envs;
     }
 
-    public HashMap<String,Object> generateEvent(String eventName, String stageStatus, String start_time, String end_time){
+    public HashMap<String,Object> generateEvent(String stageStatus, String start_time, String end_time, ArrayList<String> stages){
         /*Basic sanitization of the job names, this can be expanded*/
-        eventName = eventName.toLowerCase();
-        eventName = eventName.replace(' ','-');
+        //eventName = eventName.toLowerCase();
+        //eventName = eventName.replace(' ','-');
+
         String product =envVars.get("product", "unknown");
         String buildBranch = envVars.get("BRANCH_NAME", "master");
-        String commitMessage = "unkown";
+        String commitMessage = "unknown";
         String commitAuthor = "unknown";
-        String startTime = start_time.equals("null") ? "null" : start_time;
-        String endTime = end_time.equals("null") ? "null" : end_time;
+        String startTime = start_time;
+        String endTime = end_time == null ? null : end_time;
         String job = envVars.get("JOB_NAME", "unknown").toLowerCase();
         if (job.contains("/")) {
             job = job.replace("/", ".");
@@ -74,12 +93,24 @@ public class PipelineStatusGraphListener extends StepEnvironmentContributor impl
             log.info(e.toString());
         }
 
+        String stageString = "[";
+
+        for (int i = 0; i < stages.size(); i++) {
+          stageString = stageString + "\"" + stages.get(i)+ "\"";
+          log.info("info = " + stages.get(i));
+          if (i != stages.size() - 1) {
+            stageString = stageString + ", ";
+          }
+        }
+        stageString = stageString + "]";
+
+
+
         long timestamp = Instant.now().toEpochMilli();
 
         /*
          * TODO Change the namespace to toolchain 
          * Preload the stages ahead of time 
-         * Get the commit id, messages, and commiters from takumi
          *
          *
          * These are the variables that are retrieved by Jenkins
@@ -121,10 +152,10 @@ public class PipelineStatusGraphListener extends StepEnvironmentContributor impl
                 "   \"apiVersion\": \"stable.liatr.io/v1\",\n" +
                 "   \"kind\": \"Build\",\n" +
                 "   \"metadata\": {\n" +
-                "      \"name\":  \"" + product + "-" + job + "-" + eventName + "-" + timestamp + "-" + envVars.get("BUILD_ID", "1") + "\",\n" +
+                "      \"name\":  \"" + product + "-" + job + "-" + timestamp + "-" + envVars.get("BUILD_ID", "1") + "\",\n" +
                 "      \"namespace\": \"default\",\n" +
                 "      \"labels\": {\n" +
-                "         \"pipeline\":  \"" + eventName + "-" + timestamp + "\",\n" +
+                "         \"pipeline\":  \"" + product + "-" + timestamp + "\",\n" +
                 "         \"timestamp\": \"" + timestamp + "\"\n" +
                 "      }\n" +
                 "   },\n" +
@@ -144,11 +175,7 @@ public class PipelineStatusGraphListener extends StepEnvironmentContributor impl
                 "      \"product\": \"" + product + "\",\n" +
                 "      \"result\": \"" + stageStatus + "\",\n" +
                 "      \"committer\": \"" + commitAuthor + "\",\n" +
-                "      \"stages\": [\n" +
-                "         \"Build Stage\",\n" +
-                "         \"Testing stage\",\n" +
-                "         \"Deploy stage\"\n" +
-                "      ],\n" +
+                "      \"stages\": " + stageString + ",\n" +
                 "      \"start_time\": \"" + startTime + "\",\n" +
                 "      \"type\": \"" + envVars.get("GIT_BRANCH", "unknown") + "\",\n" +
                 "      \"url\": \"" + envVars.get("JOB_DISPLAY_URL", "1") + "\"\n" +
@@ -167,6 +194,29 @@ public class PipelineStatusGraphListener extends StepEnvironmentContributor impl
     @Override
     public void onNewHead(FlowNode flowNode) {
         //log.info(envVars.toString());
+        FlowExecution exec = flowNode.getExecution();
+        Run<?, ?> run = runFor(exec);
+        List<BuildStage> stageNames = getDeclarativeStages(run);
+        ArrayList<String> stageNameList = new ArrayList<>();
+        log.info("size = " + stageNames.size());
+
+        log.info("flownode = " + flowNode.getDisplayName());
+        String temper = flowNode.getDisplayName();
+        log.info("gg id = " + flowNode.getId());
+
+        if (temper.equals("Set environment variables : End"))
+        {
+          for (int i = 0; i < stageNames.size(); i++)
+            {
+              log.info("DEBUG @ " + i + " = " + stageNames.get(i).getStageName());
+              stageNameList.add(stageNames.get(i).getStageName());
+            }
+        }
+        else {
+            log.info("temper = " + temper);
+        }
+
+        log.info("Built Stage List - " + stageNameList);
 
         try {
             ApiClient client = ClientBuilder.cluster().build();
@@ -188,6 +238,11 @@ public class PipelineStatusGraphListener extends StepEnvironmentContributor impl
             df.setTimeZone(tz);
             String startTime = df.format(new Date());
 
+            if (temper.equals("Set environment variables : End")) {     
+                body = generateEvent("inProgress", startTime, "null", stageNameList);
+                result = apiInstance.createNamespacedCustomObject(group, version, "default", plural, body, pretty);
+            }
+
             if (flowNode.getClass() == StepStartNode.class) {
                 StepStartNode stepNode = (StepStartNode) flowNode;
                 if (stepNode.isBody() && stepNode.getStepName().equals("Stage")) {
@@ -198,8 +253,8 @@ public class PipelineStatusGraphListener extends StepEnvironmentContributor impl
                     Ids.add(stepNode.getId());
                     log.info("");
                     log.info("STEPNODE CONTAINS " + stepNode);
-                    body = generateEvent(stepNode.getDisplayName(), "inProgress", startTime, "null");
-                    result = apiInstance.createNamespacedCustomObject(group, version, "default", plural, body, pretty);
+                    //body = generateEvent(stepNode.getDisplayName(), "inProgress", startTime, "null", stageNameList);
+                    //result = apiInstance.createNamespacedCustomObject(group, version, "default", plural, body, pretty);
                     //log.info(result.toString());
                 }
             }
@@ -216,8 +271,8 @@ public class PipelineStatusGraphListener extends StepEnvironmentContributor impl
                     log.info("### /Error Info ###");
                     log.info("");
 
-                    body = generateEvent(errorAction.getDisplayName(), "fail", startTime, endTime);
-                    result = apiInstance.createNamespacedCustomObject(group, version, "default", plural, body, pretty);
+                    //body = generateEvent(errorAction.getDisplayName(), "fail", startTime, endTime, stageNameList);
+                    //result = apiInstance.createNamespacedCustomObject(group, version, "default", plural, body, pretty);
                     //log.info(result.toString());
                 }
 
@@ -230,16 +285,119 @@ public class PipelineStatusGraphListener extends StepEnvironmentContributor impl
                 log.info("### /Ending Stage ###");
                 log.info("");
 
-                body = generateEvent(((StepEndNode) flowNode).getStartNode().getDisplayName(), "success", startTime, endTime);
-                result = apiInstance.createNamespacedCustomObject(group, version, "default", plural, body, pretty);
+                //body = generateEvent(((StepEndNode) flowNode).getStartNode().getDisplayName(), "success", startTime, endTime, stageNameList);
+                //result = apiInstance.createNamespacedCustomObject(group, version, "default", plural, body, pretty);
                 //log.info(result.toString());
 
             }
         } catch (Exception exception) {
             log.info("exception caught");
             log.info(exception.toString());
+            log.info("temp");
 
         }
     }
+
+
+
+
+
+    protected static List<BuildStage> getDeclarativeStages(Run<?, ?> run) {
+        ExecutionModelAction executionModelAction = run.getAction(ExecutionModelAction.class);
+        if (null == executionModelAction) {
+            return null;
+        }
+        ModelASTStages stages = executionModelAction.getStages();
+        if (null == stages) {
+            return null;
+        }
+        List<ModelASTStage> stageList = stages.getStages();
+        if (null == stageList) {
+            return null;
+        }
+        return convertList(stageList);
+    }
+
+    /**
+     * Converts a list of {@link ModelASTStage} objects to a list of stage names.
+     *
+     * @param modelList list to convert
+     * @return list of stage names
+     */
+    private static List<BuildStage> convertList(List<ModelASTStage> modelList) {
+        ArrayList<BuildStage> result = new ArrayList<>();
+        for (ModelASTStage stage : modelList) {
+            HashMap<String, Object> environmentVariables = new HashMap<String, Object>();
+            ModelASTEnvironment modelEnvironment = stage.getEnvironment();
+            if (modelEnvironment != null) {
+                stage.getEnvironment().getVariables().forEach((key, value) -> {
+                    String groovyValue = value.toGroovy();
+                    if (groovyValue.startsWith("'")) {
+                        groovyValue = groovyValue.substring(1);
+                    }
+                    if (groovyValue.endsWith("'")) {
+                        groovyValue = groovyValue.substring(0, groovyValue.length() - 1);
+                    }
+                    environmentVariables.put(key.getKey(), groovyValue);
+                });
+            }
+            ModelASTOptions options = stage.getOptions();
+            if (options != null) {
+                for (ModelASTOption option : options.getOptions()) {
+                    for (ModelASTMethodArg arg : option.getArgs()) {
+                        if (arg instanceof ModelASTKeyValueOrMethodCallPair) {
+                            ModelASTKeyValueOrMethodCallPair arg2 = (ModelASTKeyValueOrMethodCallPair) arg;
+                            JSONObject value = (JSONObject) arg2.getValue().toJSON();
+
+                            environmentVariables.put(String.format("%s.%s", option.getName(), arg2.getKey().getKey()),
+                                    value.get("value"));
+                        }
+                    }
+                }
+            }
+
+            for (String stageName : getAllStageNames(stage)) {
+                result.add(new BuildStage(stageName, environmentVariables));
+            }
+        }
+        return result;
+    }
+
+    private static List<String> getAllStageNames(ModelASTStage stage) {
+        List<String> stageNames = new ArrayList<>();
+        stageNames.add(stage.getName());
+        List<ModelASTStage> stageList = null;
+        if (stage.getStages() != null) {
+            stageList = stage.getStages().getStages();
+        } else {
+            stageList = stage.getParallelContent();
+        }
+        if (stageList != null) {
+            for (ModelASTStage innerStage : stageList) {
+                stageNames.addAll(getAllStageNames(innerStage));
+            }
+        }
+        return stageNames;
+    }
+
+    private static @CheckForNull Run<?, ?> runFor(FlowExecution exec) {
+        Queue.Executable executable;
+        try {
+            executable = exec.getOwner().getExecutable();
+        } catch (IOException x) {
+            getLogger().log(Level.WARNING, null, x);
+            return null;
+        }
+        if (executable instanceof Run) {
+            return (Run<?, ?>) executable;
+        } else {
+            return null;
+        }
+    }
+
+    private static Logger getLogger() {
+        return Logger.getLogger(GithubBuildStatusGraphListener.class.getName());
+    }
+
 
 }
