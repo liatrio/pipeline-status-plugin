@@ -72,25 +72,7 @@ public class PipelineStatusGraphListener extends StepEnvironmentContributor impl
         String endTime = end_time == null ? null : end_time;
         String job = envVars.get("JOB_NAME", "unknown").toLowerCase();
         if (job.contains("/")) {
-            job = job.replace("/", ".");
-        }
-        String gitRepo = envVars.get("GIT_URL", "unknown.git").toLowerCase();
-        gitRepo = gitRepo.substring(gitRepo.lastIndexOf("/") + 1);
-        if (gitRepo.contains(".")) {
-            int index = gitRepo.indexOf(".");
-            gitRepo = gitRepo.substring(0, index);
-        } 
-        try {
-            GitHubClient client = new GitHubClient();
-            RepositoryService repoService = new RepositoryService(client);
-            Repository repository = repoService.getRepository("Liatrio", gitRepo);
-            CommitService commitService = new CommitService(client);
-            Commit commit1 = commitService.getCommit(repository, buildBranch).getCommit();
-            commitMessage = commit1.getMessage();
-            commitAuthor = commit1.getAuthor().getName();
-
-        } catch (Exception e) {
-            log.info(e.toString());
+            job = job.replace("/", "-");
         }
 
         String stageString = "[";
@@ -147,6 +129,59 @@ public class PipelineStatusGraphListener extends StepEnvironmentContributor impl
          * TMPDIR=/var/folders/d1/j5m80b1n2yvg8qmkfjmkcb180000gn/T/, USER=ahmedalsabag,
          * WORKSPACE=/Users/ahmedalsabag/Documents/liatrio/pipeline-status-plugin/work/
          * workspace/multi_master, XPC_FLAGS=0x0, XPC_SERVICE_NAME=0}
+         *  JAVA_URL_VERSION=8u222b10
+         * FROM `printenv` in Jenkins Stage
+				 * JENKINS_HOME=/pipeline-status-plugin/work
+				 * KUBERNETES_PORT=tcp://10.96.0.1:443
+				 * GIT_PREVIOUS_SUCCESSFUL_COMMIT=5273172ec5247da450832b6a2344861a5d7cbed0
+				 * KUBERNETES_SERVICE_PORT=443
+			   * RUN_CHANGES_DISPLAY_URL=http://unconfigured-jenkins-location/job/aaca/job/ENG-1236/6/display/redirect?page=changes
+				 * HOSTNAME=maven
+				 * SHLVL=1
+				 * NODE_LABELS=master
+				 * GIT_COMMIT=5273172ec5247da450832b6a2344861a5d7cbed0
+				 * JAVA_BASE_URL=https://github.com/AdoptOpenJDK/openjdk8-upstream-binaries/releases/download/jdk8u222-b10/OpenJDK8U-jdk_
+				 * OLDPWD=/pipeline-status-plugin
+				 * HOME=/root
+				 * HUDSON_COOKIE=cf801203-7ca7-42f2-a821-514999f950e0
+				 * JENKINS_SERVER_COOKIE=durable-f103a40293ba6414d4fc23a36b0f8df4
+				 * MAVEN_HOME=/usr/share/maven
+				 * MAVEN_CMD_LINE_ARGS=/root/.m2 hpi:run
+				 * WORKSPACE=/pipeline-status-plugin/work/workspace/aaca_ENG-1236
+				 * JAVA_VERSION=8u222
+				 * MAVEN_PROJECTBASEDIR=/pipeline-status-plugin
+				 * NODE_NAME=master
+				 * _=/usr/bin/mvn
+				 * STAGE_NAME=Print Env
+				 * GIT_BRANCH=ENG-1236
+				 * EXECUTOR_NUMBER=1
+				 * TERM=xterm
+				 * BUILD_DISPLAY_NAME=#6
+				 * KUBERNETES_PORT_443_TCP_ADDR=10.96.0.1
+				 * HUDSON_HOME=/pipeline-status-plugin/work
+				 * JOB_BASE_NAME=ENG-1236
+				 * PATH=/usr/local/openjdk-8/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+				 * BUILD_ID=6
+				 * KUBERNETES_PORT_443_TCP_PORT=443
+				 * BUILD_TAG=jenkins-aaca-ENG-1236-6
+				 * KUBERNETES_PORT_443_TCP_PROTO=tcp
+				 * CONTAINER_ENV_VAR=container-env-var-value
+         * LANG=C.UTF-8
+				 * GIT_URL=https://github.com/liatrio/pipeline-status-plugin.git
+				 * BUILD_NUMBER=6
+				 * JENKINS_NODE_COOKIE=3991e6c2-86d7-4ea1-90d7-97a338168635
+				 * RUN_DISPLAY_URL=http://unconfigured-jenkins-location/job/aaca/job/ENG-1236/6/display/redirect
+				 * HUDSON_SERVER_COOKIE=8f0d80364275f528
+				 * JOB_DISPLAY_URL=http://unconfigured-jenkins-location/job/aaca/job/ENG-1236/display/redirect
+				 * KUBERNETES_PORT_443_TCP=tcp://10.96.0.1:443
+				 * KUBERNETES_SERVICE_PORT_HTTPS=443
+				 * JOB_NAME=aaca/ENG-1236
+				 * PWD=/pipeline-status-plugin/work/workspace/aaca_ENG-1236
+				 * JAVA_HOME=/usr/local/openjdk-8
+				 * KUBERNETES_SERVICE_HOST=10.96.0.1
+				 * MAVEN_CONFIG=/root/.m2
+				 * GIT_PREVIOUS_COMMIT=5273172ec5247da450832b6a2344861a5d7cbed0
+				 * BRANCH_NAME=ENG-1236 
          */
         String json = "{\n" +
                 "   \"apiVersion\": \"stable.liatr.io/v1\",\n" +
