@@ -64,10 +64,8 @@ public class PipelineStatusGraphListener extends StepEnvironmentContributor impl
         //eventName = eventName.toLowerCase();
         //eventName = eventName.replace(' ','-');
 
-        String product =envVars.get("product", "unknown");
-        String buildBranch = envVars.get("BRANCH_NAME", "master");
-        String commitMessage = "unknown";
-        String commitAuthor = "unknown";
+        String product = envVars.get("product", "unknown");
+        String commitMessage = envVars.get("GIT_COMMITTER_NAME", "unknown");
         String startTime = start_time;
         String endTime = end_time == null ? null : end_time;
         String job = envVars.get("JOB_NAME", "unknown").toLowerCase();
@@ -209,7 +207,7 @@ public class PipelineStatusGraphListener extends StepEnvironmentContributor impl
                 "      },\n" +
                 "      \"product\": \"" + product + "\",\n" +
                 "      \"result\": \"" + stageStatus + "\",\n" +
-                "      \"committer\": \"" + commitAuthor + "\",\n" +
+                "      \"committer\": \"" + envVars.get("GIT_COMMITTER_NAME", "unknown") + "\",\n" +
                 "      \"stages\": " + stageString + ",\n" +
                 "      \"start_time\": \"" + startTime + "\",\n" +
                 "      \"type\": \"" + envVars.get("GIT_BRANCH", "unknown") + "\",\n" +
@@ -233,22 +231,17 @@ public class PipelineStatusGraphListener extends StepEnvironmentContributor impl
         Run<?, ?> run = runFor(exec);
         List<BuildStage> stageNames = getDeclarativeStages(run);
         ArrayList<String> stageNameList = new ArrayList<>();
-        log.info("size = " + stageNames.size());
 
         log.info("flownode = " + flowNode.getDisplayName());
-        String temper = flowNode.getDisplayName();
-        log.info("gg id = " + flowNode.getId());
+        String currentFlownode = flowNode.getDisplayName();
 
-        if (temper.equals("Set environment variables : End"))
+        if (currentFlownode.equals("Set environment variables : End"))
         {
           for (int i = 0; i < stageNames.size(); i++)
             {
-              log.info("DEBUG @ " + i + " = " + stageNames.get(i).getStageName());
+              log.info("STAGE NAME @ " + i + " = " + stageNames.get(i).getStageName());
               stageNameList.add(stageNames.get(i).getStageName());
             }
-        }
-        else {
-            log.info("temper = " + temper);
         }
 
         log.info("Built Stage List - " + stageNameList);
@@ -273,8 +266,8 @@ public class PipelineStatusGraphListener extends StepEnvironmentContributor impl
             df.setTimeZone(tz);
             String startTime = df.format(new Date());
 
-            if (temper.equals("Set environment variables : End")) {     
-                body = generateEvent("inProgress", startTime, "null", stageNameList);
+            if (currentFlownode.equals("Set environment variables : End")) {     
+                body = generateEvent("inProgress", startTime, null, stageNameList);
                 result = apiInstance.createNamespacedCustomObject(group, version, "default", plural, body, pretty);
             }
 
