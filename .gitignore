@@ -1,12 +1,10 @@
 # Compiled class file
 *.class
 
-target
-work
+target/
+work/
+coverage/
 
-.gradle
-build
-gradle
 .project
 .settings/
 .classpath
