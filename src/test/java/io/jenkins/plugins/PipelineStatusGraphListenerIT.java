@@ -15,7 +15,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
-public class PipelineStatusGraphListenerTest {
+public class PipelineStatusGraphListenerIT {
     @Rule 
     public JenkinsRule j = new JenkinsRule();
 
