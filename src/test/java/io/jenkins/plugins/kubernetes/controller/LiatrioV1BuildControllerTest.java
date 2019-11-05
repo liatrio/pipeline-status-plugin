@@ -47,9 +47,16 @@ public class LiatrioV1BuildControllerTest {
 
   @Test
   public void testHandlePipelineStartEvent() {
-    PipelineEvent event = new PipelineEvent().jobName("test-job-name").timestamp(new Date()).product("chatops-dev")
-        .gitUrl("https://www.github.com/liatrio/springtrader-test.git").commitId("123456789abcd").branch("PR-11111")
-        .buildId("2").jobDisplayUrl("http://jenkins/job/url");
+    PipelineEvent event = 
+      new PipelineEvent()
+        .jobName("test-job-name")
+        .timestamp(new Date())
+        .product("chatops-dev")
+        .gitUrl("https://www.github.com/liatrio/springtrader-test.git")
+        .commitId("123456789abcd")
+        .branch("PR-11111")
+        .buildId("2")
+        .jobDisplayUrl("http://jenkins/job/url");
 
     controller.handlePipelineStartEvent(event);
 
