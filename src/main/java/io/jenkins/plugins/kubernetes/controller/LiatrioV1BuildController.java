@@ -1,16 +1,19 @@
 package io.jenkins.plugins.kubernetes.controller;
 
-import java.io.IOException;
 import java.security.MessageDigest;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import com.google.gson.Gson;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.jenkins.plugins.PipelineEvent;
 import io.jenkins.plugins.PipelineEventHandler;
 import io.jenkins.plugins.kubernetes.model.LiatrioV1Build;
@@ -19,26 +22,16 @@ import io.jenkins.plugins.kubernetes.model.LiatrioV1BuildType;
 import io.jenkins.plugins.kubernetes.model.LiatrioV1Pipeline;
 import io.jenkins.plugins.kubernetes.model.LiatrioV1PipelineType;
 import io.jenkins.plugins.kubernetes.model.LiatrioV1ResultType;
-import io.kubernetes.client.ApiClient;
-import io.kubernetes.client.Configuration;
-import io.kubernetes.client.models.V1ObjectMeta;
-import io.kubernetes.client.util.ClientBuilder;
 
 public class LiatrioV1BuildController implements PipelineEventHandler {
   private static Logger logger = Logger.getLogger(LiatrioV1BuildController.class.getName());
   public static final String API_VERSION = "stable.liatr.io/v1";
   public static final String KIND = "Build";
 
-  // TODO: not testable
-  static {
-      ApiClient client;
-      try {
-          client = ClientBuilder.cluster().build();
-          Configuration.setDefaultApiClient(client);
-          client.setDebugging(true);
-      } catch (IOException e) {
-          logger.log(Level.SEVERE, "Unable to initialize kubernetes client", e);
-      }
+  private NamespacedKubernetesClient client;
+
+  public LiatrioV1BuildController(NamespacedKubernetesClient client) {
+    this.client = client;
   }
 
   @Override
@@ -49,15 +42,7 @@ public class LiatrioV1BuildController implements PipelineEventHandler {
          .startTime(event.getTimestamp())
          .result(LiatrioV1ResultType.inProgress);
 
-    Gson gson = new Gson();
-    logger.info(gson.toJson(build));
-        /*
-        String group = "stable.liatr.io"; // String | The custom resource's group name
-        String version = "v1"; // String | The custom resource's version
-        String plural = "builds"; // String | The custom resource's plural name. For TPRs this would be lowercase plural kind.
-        CustomObjectsApi apiInstance = new CustomObjectsApi();
-        apiInstance.createNamespacedCustomObject(group, version, "default", plural, build, true);
-        */
+    client.resource(build).createOrReplace();
   }
 
   @Override
@@ -68,21 +53,33 @@ public class LiatrioV1BuildController implements PipelineEventHandler {
          .endTime(event.getTimestamp())
          .result(event.getError().map(t -> LiatrioV1ResultType.fail).orElse(LiatrioV1ResultType.success));
 
-    Gson gson = new Gson();
-    logger.info(gson.toJson(build));
+    ObjectMapper mapper = new ObjectMapper();
+    try {
+      logger.info(mapper.writeValueAsString(build));
+    } catch (Exception ex) {
+      logger.log(Level.SEVERE, "Error writing JSON", ex);
+    }
+
+    // TODO: patch the build resource
   }
 
   public static LiatrioV1Build asBuild(PipelineEvent event) {
     LiatrioV1Pipeline pipeline = parseGitUrl(event.getGitUrl());
+
+    String name = buildName(event.getProduct(), pipeline.getOrg(), pipeline.getName(), String.valueOf(event.getTimestamp().getTime()));
+    Map<String,String> labels = new HashMap<>();
+    labels.put("product", event.getProduct());
+    labels.put("pipeline_org", pipeline.getOrg());
+    labels.put("pipeline_name", pipeline.getName());
+    labels.put("timestamp", String.valueOf(event.getTimestamp().getTime()));
+    ObjectMeta meta = new ObjectMeta();
+    meta.setName(name);
+    meta.setLabels(labels);
+
     LiatrioV1Build build = 
       new LiatrioV1Build()
         .apiVersion(API_VERSION).kind(KIND)
-        .metadata(new V1ObjectMeta()
-          .name(buildName(event.getProduct(), pipeline.getOrg(), pipeline.getName(), String.valueOf(event.getTimestamp().getTime())))
-          .putLabelsItem("product", event.getProduct())
-          .putLabelsItem("pipeline_org", pipeline.getOrg())
-          .putLabelsItem("pipeline_name", pipeline.getName())
-          .putLabelsItem("timestamp", String.valueOf(event.getTimestamp().getTime())))
+        .metadata(meta)
         .spec(new LiatrioV1BuildSpec()
           .branch(event.getBranch())
           .buildId(event.getBuildId())

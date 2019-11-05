@@ -1,21 +1,14 @@
 package io.jenkins.plugins.kubernetes.model;
 
-import com.google.gson.annotations.SerializedName;
-
 public class LiatrioV1Pipeline {
-  @SerializedName("host")
   private String host = null;
 
-  @SerializedName("name")
   private String name = null;
 
-  @SerializedName("org")
   private String org = null;
 
-  @SerializedName("type")
   private LiatrioV1PipelineType type = null;
 
-  @SerializedName("url")
   private String url = null;
 
   public LiatrioV1Pipeline host(String host) {

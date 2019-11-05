@@ -1,16 +1,27 @@
 package io.jenkins.plugins.kubernetes.controller;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.*;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
+import io.fabric8.kubernetes.client.dsl.NamespaceListVisitFromServerGetDeleteRecreateWaitApplicable;
+import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.jenkins.plugins.PipelineEvent;
 import io.jenkins.plugins.kubernetes.model.LiatrioV1Build;
 import io.jenkins.plugins.kubernetes.model.LiatrioV1BuildSpec;
@@ -19,16 +30,33 @@ import io.jenkins.plugins.kubernetes.model.LiatrioV1Pipeline;
 import io.jenkins.plugins.kubernetes.model.LiatrioV1PipelineType;
 
 public class LiatrioV1BuildControllerTest {
+  @Rule
+  public KubernetesServer server = new KubernetesServer(true, true);
+
   private LiatrioV1BuildController controller;
 
   @Before
   public void setupController() {
-    controller = new LiatrioV1BuildController();
+    controller = new LiatrioV1BuildController(server.getClient());
   }
 
   @After
   public void teardownController() {
     controller = null;
+  }
+
+  @Test
+  public void testHandlePipelineStartEvent() {
+    PipelineEvent event = new PipelineEvent().jobName("test-job-name").timestamp(new Date()).product("chatops-dev")
+        .gitUrl("https://www.github.com/liatrio/springtrader-test.git").commitId("123456789abcd").branch("PR-11111")
+        .buildId("2").jobDisplayUrl("http://jenkins/job/url");
+
+    controller.handlePipelineStartEvent(event);
+
+    NamespacedKubernetesClient client = server.getClient();
+    List<HasMetadata> buildList = client.resourceList(new LiatrioV1Build()).get();
+    assertNotNull(buildList);
+    assertEquals(1, buildList.size());
   }
 
   @Test

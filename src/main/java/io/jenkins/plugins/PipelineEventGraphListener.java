@@ -15,6 +15,8 @@ import org.jenkinsci.plugins.workflow.flow.*;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 
+import io.fabric8.kubernetes.client.DefaultKubernetesClient;
+import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.jenkins.plugins.kubernetes.controller.LiatrioV1BuildController;
 import io.jenkins.plugins.kubernetes.controller.V1EventController;
 import net.sf.json.JSONObject;
@@ -44,7 +46,8 @@ public class PipelineEventGraphListener implements GraphListener {
     private final ArrayList<PipelineEventHandler> eventHandlers = new ArrayList<>();
 
     public PipelineEventGraphListener() {
-        eventHandlers.add(new LiatrioV1BuildController());
+        NamespacedKubernetesClient client = new DefaultKubernetesClient();
+        eventHandlers.add(new LiatrioV1BuildController(client));
         eventHandlers.add(new V1EventController());
     }
 
@@ -93,19 +96,25 @@ public class PipelineEventGraphListener implements GraphListener {
     }
 
     private StageEvent asStageEvent(FlowNode flowNode) {
-        StageEvent event = new StageEvent();
+        String stageName = flowNode.getDisplayName();
+        if (flowNode instanceof StepEndNode) {
+            stageName = ((StepEndNode) flowNode).getStartNode().getDisplayName();
+        }
+        StageEvent event = 
+            new StageEvent()
+                .stageName(stageName);
         return event;
     }
 
     private boolean isPipelineNode(FlowNode flowNode) {
         // Check for StepStartNode with no parents
-        if (flowNode.getClass() == StepStartNode.class) {
+        if (flowNode instanceof StepStartNode) {
             StepStartNode stepNode = (StepStartNode) flowNode;
             return stepNode.getParents().stream().allMatch(p -> p.getParentIds().isEmpty());
         } 
         
         // Check for StepEndNode with a startNode that isPipelineNode
-        if (flowNode.getClass() == StepEndNode.class) {
+        if (flowNode instanceof StepEndNode) {
             StepEndNode endNode = (StepEndNode) flowNode;
             return isPipelineNode(endNode.getStartNode());
         }
@@ -115,13 +124,13 @@ public class PipelineEventGraphListener implements GraphListener {
 
     private boolean isStageNode(FlowNode flowNode) {
         // Check for StepStartNode with stepName == 'Stage'
-        if (flowNode.getClass() == StepStartNode.class) {
+        if (flowNode instanceof StepStartNode) {
             StepStartNode stepNode = (StepStartNode) flowNode;
             return (stepNode.isBody() && stepNode.getStepName().equals("Stage")); 
         } 
         
         // Check for StepEndNode with a startNode that isStageNode
-        if (flowNode.getClass() == StepEndNode.class) {
+        if (flowNode instanceof StepEndNode) {
             StepEndNode endNode = (StepEndNode) flowNode;
             return isStageNode(endNode.getStartNode());
         }

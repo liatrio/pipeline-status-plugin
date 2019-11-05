@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.TimeZone;
 
-import com.google.gson.annotations.SerializedName;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class LiatrioV1BuildSpec {
   private static final DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'"); // Quoted "Z" to indicate UTC, no timezone offset
@@ -16,43 +16,35 @@ public class LiatrioV1BuildSpec {
     df.setTimeZone(tz);
   }
 
-  @SerializedName("branch")
   private String branch = null;
 
-  @SerializedName("build_id")
+  @JsonProperty("build_id")
   private String buildId = null;
 
-  @SerializedName("commit_id")
+  @JsonProperty("commit_id")
   private String commitId = null;
 
-  @SerializedName("commit_message")
+  @JsonProperty("commit_message")
   private String commitMessage = null;
 
-  @SerializedName("committers")
   private List<String> committers = null;
 
-  @SerializedName("pipeline")
   private LiatrioV1Pipeline pipeline = null;
 
-  @SerializedName("product")
   private String product = null;
 
-  @SerializedName("result")
   private LiatrioV1ResultType result = null;
 
-  @SerializedName("stages")
   private List<String> stages = null;
 
-  @SerializedName("start_time")
+  @JsonProperty("start_time")
   private String startTime = null;
 
-  @SerializedName("end_time")
+  @JsonProperty("end_time")
   private String endTime = null;
 
-  @SerializedName("type")
   private LiatrioV1BuildType type = null;
 
-  @SerializedName("url")
   private String url = null;
 
   public LiatrioV1BuildSpec() {
