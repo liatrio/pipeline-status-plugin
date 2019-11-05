@@ -1,12 +1,21 @@
-package io.jenkins.plugins.model;
+package io.jenkins.plugins.kubernetes.model;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.TimeZone;
 
 import com.google.gson.annotations.SerializedName;
 
 public class LiatrioV1BuildSpec {
+  private static final DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'"); // Quoted "Z" to indicate UTC, no timezone offset
+  static {
+    TimeZone tz = TimeZone.getTimeZone("UTC");
+    df.setTimeZone(tz);
+  }
+
   @SerializedName("branch")
   private String branch = null;
 
@@ -35,7 +44,10 @@ public class LiatrioV1BuildSpec {
   private List<String> stages = null;
 
   @SerializedName("start_time")
-  private Date startTime = null;
+  private String startTime = null;
+
+  @SerializedName("end_time")
+  private String endTime = null;
 
   @SerializedName("type")
   private LiatrioV1BuildType type = null;
@@ -87,7 +99,12 @@ public class LiatrioV1BuildSpec {
   }
 
   public LiatrioV1BuildSpec startTime(Date startTime) {
-    this.startTime = startTime;
+    this.startTime = df.format(startTime);
+    return this;
+  }
+
+  public LiatrioV1BuildSpec endTime(Date endTime) {
+    this.endTime = df.format(endTime);
     return this;
   }
 
@@ -165,12 +182,20 @@ public class LiatrioV1BuildSpec {
     this.stages = stages;
   }
 
-  public Date getStartTime() {
+  public String getStartTime() {
     return startTime;
   }
 
-  public void setStartTime(Date startTime) {
+  public void setStartTime(String startTime) {
     this.startTime = startTime;
+  }
+
+  public String getEndTime() {
+    return endTime;
+  }
+
+  public void setEndTime(String endTime) {
+    this.endTime = endTime;
   }
 
   public LiatrioV1BuildType getType() {
@@ -234,5 +259,6 @@ public class LiatrioV1BuildSpec {
       ", url='" + getUrl() + "'" +
       "}";
   }
+
 
 }

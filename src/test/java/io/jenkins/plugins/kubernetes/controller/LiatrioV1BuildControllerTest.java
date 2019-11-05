@@ -1,50 +1,56 @@
-package io.jenkins.plugins.model;
+package io.jenkins.plugins.kubernetes.controller;
 
 import static org.junit.Assert.assertThat;
 
+import java.util.Date;
 import java.util.Map;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import hudson.EnvVars;
-
 import static org.hamcrest.CoreMatchers.*;
 
+import io.jenkins.plugins.PipelineEvent;
+import io.jenkins.plugins.kubernetes.model.LiatrioV1Build;
+import io.jenkins.plugins.kubernetes.model.LiatrioV1BuildSpec;
+import io.jenkins.plugins.kubernetes.model.LiatrioV1BuildType;
+import io.jenkins.plugins.kubernetes.model.LiatrioV1Pipeline;
+import io.jenkins.plugins.kubernetes.model.LiatrioV1PipelineType;
 
-import io.kubernetes.client.models.V1Event;
-
-public class LiatrioV1BuilderTest {
-  private LiatrioV1Builder builder;
+public class LiatrioV1BuildControllerTest {
+  private LiatrioV1BuildController controller;
 
   @Before
-  public void setupBuilder() {
-    builder = new LiatrioV1Builder();
+  public void setupController() {
+    controller = new LiatrioV1BuildController();
   }
 
   @After
-  public void teardownBuilder() {
-    builder = null;
+  public void teardownController() {
+    controller = null;
   }
 
   @Test
-  public void testCreate() {
-    EnvVars vars = new EnvVars();
-    vars.put("product", "chatops-dev");
-    vars.put("GIT_URL", "https://www.github.com/liatrio/springtrader-test.git");
-    vars.put("GIT_COMMIT", "123456789abcd");
-    vars.put("GIT_BRANCH", "PR-11111");
-    vars.put("BUILD_ID", "2");
-    vars.put("JOB_DISPLAY_URL", "http://jenkins/job/url");
+  public void testAsBuild() {
+    PipelineEvent event = 
+      new PipelineEvent()
+        .jobName("test-job-name")
+        .timestamp(new Date())
+        .product("chatops-dev")
+        .gitUrl("https://www.github.com/liatrio/springtrader-test.git")
+        .commitId("123456789abcd")
+        .branch("PR-11111")
+        .buildId("2")
+        .jobDisplayUrl("http://jenkins/job/url");
 
-    LiatrioV1Build build = builder.withEnvVars(vars).build();
+    LiatrioV1Build build = LiatrioV1BuildController.asBuild(event);
 
     assertThat("build", build, is(notNullValue()));
     assertThat("build.apiVersion", build.getApiVersion(), is(equalTo("stable.liatr.io/v1")));
     assertThat("build.kind", build.getKind(), is(equalTo("Build")));
-    assertThat("build.meta.name", build.getMetadata().getName(),
-        is(equalTo("chatops-dev-liatrio-springtrader-test-12345678-2")));
+    //assertThat("build.meta.name", build.getMetadata().getName(),
+    //    is(equalTo("chatops-dev-liatrio-springtrader-test-12345678-2")));
 
     Map<String, String> labels = build.getMetadata().getLabels();
     assertThat("labels", labels, is(notNullValue()));
@@ -72,7 +78,7 @@ public class LiatrioV1BuilderTest {
 
   @Test
   public void testParseGitUrlHttpsGithub() {
-    LiatrioV1Pipeline p = builder.parseGitUrl("https://www.github.com/liatrio/springtrader-test.git");
+    LiatrioV1Pipeline p = LiatrioV1BuildController.parseGitUrl("https://www.github.com/liatrio/springtrader-test.git");
 
     assertThat("pipeline", p, is(notNullValue()));
     assertThat("pipeline.host", p.getHost(), is("www.github.com"));
@@ -84,7 +90,7 @@ public class LiatrioV1BuilderTest {
 
   @Test
   public void testParseGitUrlHttpGithub() {
-    LiatrioV1Pipeline p = builder.parseGitUrl("http://github.com/liatrio/springtrader-test.git");
+    LiatrioV1Pipeline p = LiatrioV1BuildController.parseGitUrl("http://github.com/liatrio/springtrader-test.git");
 
     assertThat("pipeline", p, is(notNullValue()));
     assertThat("pipeline.host", p.getHost(), is("github.com"));
@@ -96,7 +102,7 @@ public class LiatrioV1BuilderTest {
 
   @Test
   public void testParseGitUrlGithub() {
-    LiatrioV1Pipeline p = builder.parseGitUrl("git@github.com:liatrio/lead-shared-library.git");
+    LiatrioV1Pipeline p = LiatrioV1BuildController.parseGitUrl("git@github.com:liatrio/lead-shared-library.git");
 
     assertThat("pipeline", p, is(notNullValue()));
     assertThat("pipeline.host", p.getHost(), is("github.com"));
@@ -107,41 +113,20 @@ public class LiatrioV1BuilderTest {
   }
 
   @Test
-  public void testBuildLabels() {
-    LiatrioV1Pipeline pipeline = builder.parseGitUrl("git@github.com:liatrio/lead-shared-library.git");
-    EnvVars envVars = new EnvVars();
-    envVars.put("product", "chatops-dev");
-
-    Map<String, String> labels = builder.buildLabels(envVars, pipeline);
-
-    assertThat("labels", labels, is(notNullValue()));
-    assertThat("labels.product", labels.get("product"), is("chatops-dev"));
-    assertThat("labels.pipeline_org", labels.get("pipeline_org"), is("liatrio"));
-    assertThat("labels.pipeline_name", labels.get("pipeline_name"), is("lead-shared-library"));
-    assertThat("labels.timestamp", labels.get("timestamp"), not(is("")));
-  }
-
-  @Test
   public void testBuildTypeMaster() {
-    EnvVars envVars = new EnvVars();
-    envVars.put("GIT_BRANCH", "master");
-    LiatrioV1BuildType type = builder.buildType(envVars);
+    LiatrioV1BuildType type = LiatrioV1BuildController.buildType("master");
     assertThat("type",type,is(LiatrioV1BuildType.Master));
   }
 
   @Test
   public void testBuildTypePR() {
-    EnvVars envVars = new EnvVars();
-    envVars.put("GIT_BRANCH", "PR-12345");
-    LiatrioV1BuildType type = builder.buildType(envVars);
+    LiatrioV1BuildType type = LiatrioV1BuildController.buildType("PR-12345");
     assertThat("type",type,is(LiatrioV1BuildType.PullRequest));
   }
 
   @Test
   public void testBuildTypeBranch() {
-    EnvVars envVars = new EnvVars();
-    envVars.put("GIT_BRANCH", "foo-bar-baz");
-    LiatrioV1BuildType type = builder.buildType(envVars);
+    LiatrioV1BuildType type = LiatrioV1BuildController.buildType("foo-bar");
     assertThat("type",type,is(LiatrioV1BuildType.Branch));
   }
 }

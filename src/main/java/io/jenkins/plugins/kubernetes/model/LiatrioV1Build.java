@@ -1,4 +1,4 @@
-package io.jenkins.plugins.model;
+package io.jenkins.plugins.kubernetes.model;
 
 import com.google.gson.annotations.SerializedName;
 
