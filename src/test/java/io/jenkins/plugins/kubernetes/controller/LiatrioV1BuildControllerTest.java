@@ -3,13 +3,10 @@ package io.jenkins.plugins.kubernetes.controller;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.After;
 import org.junit.Before;
@@ -20,7 +17,6 @@ import static org.hamcrest.CoreMatchers.*;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
-import io.fabric8.kubernetes.client.dsl.NamespaceListVisitFromServerGetDeleteRecreateWaitApplicable;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.jenkins.plugins.PipelineEvent;
 import io.jenkins.plugins.kubernetes.model.LiatrioV1Build;

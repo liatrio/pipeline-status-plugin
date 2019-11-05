@@ -5,6 +5,11 @@ import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 
 public class LiatrioV1Build implements KubernetesResource, HasMetadata {
+  /**
+   *
+   */
+  private static final long serialVersionUID = -7400108945817673943L;
+
   private String apiVersion = null;
 
   private String kind = null;
