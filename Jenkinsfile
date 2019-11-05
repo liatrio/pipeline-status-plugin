@@ -1,38 +1,20 @@
-//library 'pipeline-library'
-library 'LEAD'
-
 pipeline {
   agent any
   stages {
     stage('Maven Package and Deploy') {
-      agent {
-        label "lead-toolchain-maven"
-      }
       steps {
-        notifyPipelineStart([Jenkinsfile: 'Jenkinsfile'])
-        notifyStageStart()
-        container('maven') {
-          sh 'mvn package'
-        }
-      }
-      post {
-        success {
-          notifyStageEnd()
-        }
-        failure {
-          notifyStageEnd([result: "fail"])
-        }
+        sh "echo 'hello'"
       }
     }
-  }
-  post {
-    success {
-      echo "Pipeline Success"
-      notifyPipelineEnd()
+    stage('World stage') {
+      steps {
+        sh "echo 'world'"
+      }
     }
-    failure {
-      echo "Pipeline Fail"
-      notifyPipelineEnd([result: "fail"])
+    stage('Print Env') {
+      steps {
+        sh "printenv"
+      }
     }
   }
 }

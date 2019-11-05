@@ -1,21 +1,17 @@
 package io.jenkins.plugins;
 
-import static org.junit.Assert.assertThat;
-
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.stream.Collectors;
 
-import org.hamcrest.CoreMatchers;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
-import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
-public class PipelineStatusGraphListenerTest {
+public class PipelineStatusGraphListenerIT {
     @Rule 
     public JenkinsRule j = new JenkinsRule();
 
