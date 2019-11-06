@@ -42,13 +42,23 @@ import java.util.logging.Level;
 @Extension
 public class PipelineEventGraphListener implements GraphListener {
     private static Logger logger = Logger.getLogger(PipelineEventGraphListener.class.getName());
+    private static NamespacedKubernetesClient client;
 
     private final ArrayList<PipelineEventHandler> eventHandlers = new ArrayList<>();
 
     public PipelineEventGraphListener() {
-        NamespacedKubernetesClient client = new DefaultKubernetesClient();
         eventHandlers.add(new LiatrioV1BuildController(client));
         eventHandlers.add(new V1EventController());
+    }
+
+    public static void setClient(NamespacedKubernetesClient client) {
+        PipelineEventGraphListener.client = client;
+    }
+    public static NamespacedKubernetesClient getClient() {
+        if (client == null) {
+            client = new DefaultKubernetesClient();
+        }
+        return client;
     }
 
     @Override
@@ -218,7 +228,7 @@ public class PipelineEventGraphListener implements GraphListener {
         if (stage.getStages() != null) {
             stageList = stage.getStages().getStages();
         } else {
-            stageList = stage.getParallel().getStages();
+            stageList = stage.getParallelContent();
         }
         if (stageList != null) {
             for (ModelASTStage innerStage : stageList) {

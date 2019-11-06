@@ -3,6 +3,7 @@ package io.jenkins.plugins.kubernetes.controller;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.util.Date;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -85,7 +86,9 @@ public class LiatrioV1BuildController implements PipelineEventHandler {
   }
 
   public static LiatrioV1BuildType buildType(String branch) {
-    if (branch.equals("master")) {
+    if(branch == null) {
+      return null;
+    } if (branch.equals("master")) {
       return LiatrioV1BuildType.Master;
     } else if (branch.startsWith("PR-")) {
       return LiatrioV1BuildType.PullRequest;
@@ -119,6 +122,7 @@ public class LiatrioV1BuildController implements PipelineEventHandler {
     try {
       MessageDigest md = MessageDigest.getInstance("SHA-1");
       Stream.of(parts)
+            .filter(Objects::nonNull)
             .map(String::getBytes)
             .forEach(md::update);
       return new BigInteger(1, md.digest()).toString(16);

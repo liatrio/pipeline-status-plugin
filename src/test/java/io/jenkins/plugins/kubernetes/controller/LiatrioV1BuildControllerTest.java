@@ -3,6 +3,7 @@ package io.jenkins.plugins.kubernetes.controller;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 import java.util.Date;
@@ -78,7 +79,7 @@ public class LiatrioV1BuildControllerTest {
     assertEquals("type", LiatrioV1BuildType.PullRequest, spec.getType());
     assertEquals("result", LiatrioV1ResultType.inProgress, spec.getResult());
     assertEquals("url", "http://jenkins/job/url", spec.getUrl());
-    assertEquals("end_time", "", spec.getEndTime());
+    assertNull("end_time", spec.getEndTime());
 
     LiatrioV1Pipeline pipeline = spec.getPipeline();
     assertEquals("host", "www.github.com", pipeline.getHost());
