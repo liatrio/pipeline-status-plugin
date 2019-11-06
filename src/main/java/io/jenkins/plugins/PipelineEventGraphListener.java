@@ -42,13 +42,23 @@ import java.util.logging.Level;
 @Extension
 public class PipelineEventGraphListener implements GraphListener {
     private static Logger logger = Logger.getLogger(PipelineEventGraphListener.class.getName());
+    private static NamespacedKubernetesClient client;
 
     private final ArrayList<PipelineEventHandler> eventHandlers = new ArrayList<>();
 
     public PipelineEventGraphListener() {
-        NamespacedKubernetesClient client = new DefaultKubernetesClient();
         eventHandlers.add(new LiatrioV1BuildController(client));
         eventHandlers.add(new V1EventController());
+    }
+
+    public static void setClient(NamespacedKubernetesClient client) {
+        PipelineEventGraphListener.client = client;
+    }
+    public static NamespacedKubernetesClient getClient() {
+        if (client == null) {
+            client = new DefaultKubernetesClient();
+        }
+        return client;
     }
 
     @Override
@@ -85,7 +95,7 @@ public class PipelineEventGraphListener implements GraphListener {
                 .jobName(envVars.get("JOB_NAME", "unknown"))
                 .stages(getDeclarativeStages(run))
                 .buildId(envVars.get("BUILD_ID", "1"))
-                .timestamp(new Date())
+                .timestamp(run.getTime())
                 .error(Optional.ofNullable(flowNode.getError()).map(ErrorAction::getError))
                 .gitUrl(getGitRepo(run).map(URIish::toString).orElse(null))
                 .branch(envVars.get("GIT_BRANCH", envVars.get("BRANCH_NAME",null)))
