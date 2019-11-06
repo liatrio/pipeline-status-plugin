@@ -48,7 +48,7 @@ public class PipelineEventGraphListener implements GraphListener {
 
     public PipelineEventGraphListener() {
         eventHandlers.add(new LiatrioV1BuildController(client));
-        eventHandlers.add(new V1EventController());
+        eventHandlers.add(new V1EventController(client));
     }
 
     public static void setClient(NamespacedKubernetesClient client) {
