@@ -90,14 +90,28 @@ public class V1EventControllerTest {
     assertEquals(1, events.getItems().size());
     assertEquals("pipeline success", events.getItems().get(0).getMessage());
   }
+  @Test
+  public void testPipelineTypeEndSuccess() {
+    PipelineEvent event = 
+      new PipelineEvent()
+          .error(Optional.empty());
+    controller.handlePipelineEndEvent(event);
+
+    NamespacedKubernetesClient client = server.getClient();
+    EventList events = client.events().list();
+    assertNotNull(events);
+    assertEquals(1, events.getItems().size());
+    assertEquals("Normal", events.getItems().get(0).getType());
+    assertEquals("pipeline success", events.getItems().get(0).getMessage());
+  }
 
   @Test
   public void testAsEvent() {
     PipelineEvent pipelineEvent = new PipelineEvent();
-    Event event = V1EventController.asEvent(pipelineEvent);
+    Event event = V1EventController.asEvent(pipelineEvent, "pipeline");
 
     assertNotNull("event", event);
     assertNotEquals("event.name", "", event.getMetadata().getName());
-
+    assertEquals("event.metadata.labels.type", event.getMetadata().getLabels().get("type"), "pipeline");
   }
 }
