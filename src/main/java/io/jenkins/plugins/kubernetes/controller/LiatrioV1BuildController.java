@@ -4,13 +4,10 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.util.Date;
 import java.util.Optional;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
@@ -43,7 +40,6 @@ public class LiatrioV1BuildController implements PipelineEventHandler {
     LiatrioV1Build build = asBuild(event);
     build.getSpec()
          .result(LiatrioV1ResultType.inProgress);
-    //build.getMetadata().setNamespace(client.getNamespace());
 
     client.builds().inNamespace(this.namespace).createOrReplace(build);
   }
@@ -56,14 +52,7 @@ public class LiatrioV1BuildController implements PipelineEventHandler {
          .endTime(new Date())
          .result(event.getError().map(t -> LiatrioV1ResultType.fail).orElse(LiatrioV1ResultType.success));
 
-    ObjectMapper mapper = new ObjectMapper();
-    try {
-      logger.info(mapper.writeValueAsString(build));
-    } catch (Exception ex) {
-      logger.log(Level.SEVERE, "Error writing JSON", ex);
-    }
-
-    // TODO: patch the build resource
+    client.builds().inNamespace(this.namespace).createOrReplace(build);
   }
 
   public static LiatrioV1Build asBuild(PipelineEvent event) {

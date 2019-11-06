@@ -85,7 +85,7 @@ public class PipelineEventGraphListener implements GraphListener {
                 .jobName(envVars.get("JOB_NAME", "unknown"))
                 .stages(getDeclarativeStages(run))
                 .buildId(envVars.get("BUILD_ID", "1"))
-                .timestamp(new Date())
+                .timestamp(run.getTime())
                 .error(Optional.ofNullable(flowNode.getError()).map(ErrorAction::getError))
                 .gitUrl(getGitRepo(run).map(URIish::toString).orElse(null))
                 .branch(envVars.get("GIT_BRANCH", envVars.get("BRANCH_NAME",null)))
