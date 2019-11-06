@@ -1,60 +1,29 @@
 package io.jenkins.plugins.kubernetes.model;
 
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.client.CustomResource;
 
-public class LiatrioV1Build implements KubernetesResource, HasMetadata {
+public class LiatrioV1Build extends CustomResource {
   /**
    *
    */
   private static final long serialVersionUID = -7400108945817673943L;
 
-  private String apiVersion = null;
-
-  private String kind = null;
-
-  private ObjectMeta metadata = null;
-
   private LiatrioV1BuildSpec spec = null;
 
   public LiatrioV1Build apiVersion(String apiVersion) {
-    this.apiVersion = apiVersion;
+    this.setApiVersion(apiVersion);
     return this;
-  }
-
-  public String getApiVersion() {
-    return apiVersion;
-  }
-
-  public void setApiVersion(String apiVersion) {
-    this.apiVersion = apiVersion;
   }
 
   public LiatrioV1Build kind(String kind) {
-    this.kind = kind;
+    this.setKind(kind);
     return this;
-  }
-
-  public String getKind() {
-    return kind;
-  }
-
-  public void setKind(String kind) {
-    this.kind = kind;
   }
 
   public LiatrioV1Build metadata(ObjectMeta metadata) {
-    this.metadata = metadata;
+    this.setMetadata(metadata);
     return this;
-  }
-
-  public ObjectMeta getMetadata() {
-    return metadata;
-  }
-
-  public void setMetadata(ObjectMeta metadata) {
-    this.metadata = metadata;
   }
 
   public LiatrioV1BuildSpec getSpec() {
@@ -70,5 +39,15 @@ public class LiatrioV1Build implements KubernetesResource, HasMetadata {
     return this;
   }
 
+  @Override
+  public ObjectMeta getMetadata() { return super.getMetadata(); }
 
+  @Override
+  public String toString() {
+    return "Build{" +
+        "apiVersion='" + getApiVersion() + '\'' +
+        ", metadata=" + getMetadata() +
+        ", spec=" + spec +
+        '}';
+  }
 }

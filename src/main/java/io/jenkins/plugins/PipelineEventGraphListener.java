@@ -218,7 +218,7 @@ public class PipelineEventGraphListener implements GraphListener {
         if (stage.getStages() != null) {
             stageList = stage.getStages().getStages();
         } else {
-            stageList = stage.getParallelContent();
+            stageList = stage.getParallel().getStages();
         }
         if (stageList != null) {
             for (ModelASTStage innerStage : stageList) {
