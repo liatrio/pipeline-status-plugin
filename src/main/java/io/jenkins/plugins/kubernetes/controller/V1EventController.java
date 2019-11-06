@@ -2,7 +2,10 @@ package io.jenkins.plugins.kubernetes.controller;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.UUID;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Logger;
 
@@ -19,6 +22,11 @@ public class V1EventController implements PipelineEventHandler {
   private static Logger logger = Logger.getLogger(V1EventController.class.getName());
 
   private NamespacedKubernetesClient client;
+  private static final DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'"); // Quoted "Z" to indicate UTC, no timezone offset
+  static {
+    TimeZone tz = TimeZone.getTimeZone("UTC");
+    df.setTimeZone(tz);
+  }
 
   public V1EventController(NamespacedKubernetesClient client) {
     this.client = client;
@@ -27,7 +35,6 @@ public class V1EventController implements PipelineEventHandler {
   @Override
   public void handlePipelineStartEvent(PipelineEvent pipelineEvent) {
     logger.info("PipelineStartEvent --> New event CR");
-    Map<String, String> labels = new HashMap<>();
 
     Event event = asEvent(pipelineEvent, "pipeline");
     event.setMessage("pipeline "+pipelineEvent.getError()
@@ -89,7 +96,8 @@ public class V1EventController implements PipelineEventHandler {
           .withKind("Build")
           .endInvolvedObject()
         .withCount(1)
-        // .withFirstTimestamp(dateToString(pipelineEvent.getTimestamp()))
+        .withFirstTimestamp(dateToString(new Date()))
+        .withLastTimestamp(dateToString(new Date()))
         .build();
     return event; 
   }
@@ -107,7 +115,6 @@ public class V1EventController implements PipelineEventHandler {
   }
  
   public static String dateToString(Date d) {
-    return String.format("%td-%tm-%ty-%<tH:%<tM:%<tS", d, d, d, d, d, d);
+    return df.format(d);
   }
-
 }

@@ -22,6 +22,7 @@ public class V1EventControllerTest {
   public KubernetesServer server = new KubernetesServer(true, true);
 
   private V1EventController controller;
+  
 
   @Before
   public void setupController() {
@@ -119,11 +120,14 @@ public class V1EventControllerTest {
     assertEquals("event.reportingcomponent", event.getReportingComponent(), "sdm.lead.liatrio/operator-jenkins");
     assertEquals("event.source.component", event.getSource().getComponent(), "sdm.lead.liatrio/operator-jenkins");
     //Should we test everything for involved object?
-    assertEquals("event.count", event.getCount(), Integer.valueOf(1));  
+    assertEquals("event.count", event.getCount(), Integer.valueOf(1));
+    assertNotNull(event.getFirstTimestamp());
+    assertNotNull(event.getLastTimestamp());
     }
 
+    @Test
     public void testDateToString() {
-      Date testDate = new Date(2019, 10, 5, 12 , 30, 05);
-      assertEquals("date", controller.dateToString(testDate), "05-11-19-12:30:05");
+      Date testDate = new Date("05 October 2011 14:48 UTC");
+      assertEquals("date", controller.dateToString(testDate), "2011-10-05T14:48:00Z");
     }
 }
