@@ -64,19 +64,42 @@ public class V1EventController implements PipelineEventHandler {
   @Override
   public void handleStageStartEvent(StageEvent stageEvent) {
     logger.info("StageStartEvent --> New event CR for stage: "+stageEvent.getStageName());
-    // TODO: create event resouce
+    Event event = asEvent(stageEvent.getPipelineEvent(), "stage");
+    event.setMessage("stage "+stageEvent.getPipelineEvent().getError()
+                      .map(t -> LiatrioV1ResultType.fail)
+                      .orElse(LiatrioV1ResultType.inProgress)
+                      .toString());
+    event.setReason(stageEvent.getPipelineEvent().getError()
+                    .map(t -> LiatrioV1ResultType.fail)
+                    .orElse(LiatrioV1ResultType.inProgress)
+                    .toString());
+    event.getMetadata().getAnnotations().put("stageName",stageEvent.getStageName());
+    client.events().create(event);
   }
   @Override
   public void handleStageEndEvent(StageEvent stageEvent) {
     logger.info("StageEndEvent --> New event CR: "+stageEvent.getStageName());
-    // TODO: create event resouce
+    Event event = asEvent(stageEvent.getPipelineEvent(), "stage");
+    event.setMessage("stage "+stageEvent.getPipelineEvent().getError()
+                      .map(t -> LiatrioV1ResultType.fail)
+                      .orElse(LiatrioV1ResultType.success)
+                      .toString());
+    event.setReason(stageEvent.getPipelineEvent().getError()
+                    .map(t -> LiatrioV1ResultType.fail)
+                    .orElse(LiatrioV1ResultType.success)
+                    .toString());
+    event.getMetadata().getAnnotations().put("stageName",stageEvent.getStageName());
+    client.events().create(event);
   }
 
   public static Event asEvent(PipelineEvent pipelineEvent, String type) {
-    Map<String, String> labels = new HashMap<>();
-    Map<String, String> annotations = new HashMap<>();
-    labels.put("type", type);
     LiatrioV1Build build = LiatrioV1BuildMapper.asBuild(pipelineEvent);
+
+    Map<String, String> labels = new HashMap<>();
+    labels.put("type", type);
+    labels.put("correlationid", build.getMetadata().getName());
+    Map<String, String> annotations = new HashMap<>();
+    annotations.put("statusMessage",""); // TODO: address this in ENG-1309
     String name = UUID.randomUUID().toString().toLowerCase();
     Event event = 
       new EventBuilder()
