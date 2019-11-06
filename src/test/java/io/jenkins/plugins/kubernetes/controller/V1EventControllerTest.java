@@ -123,9 +123,14 @@ public class V1EventControllerTest {
     assertNotNull("event", event);
     assertNotEquals("event.name", "", event.getMetadata().getName());
     assertEquals("event.metadata.labels.type", event.getMetadata().getLabels().get("type"), "pipeline");
+    assertNotEquals("event.metadata.labels.correlationId", "", event.getMetadata().getLabels().get("correlationId"));
+    //assertEquals("event.metadata.annotatations.statusmessage", event.getMetadata().getAnnotations().get("statusMessage", "") TODO: address this in ENG-1309
+    assertEquals("event.type", event.getType(), "Normal");
     assertEquals("event.reportingcomponent", event.getReportingComponent(), "sdm.lead.liatrio/operator-jenkins");
     assertEquals("event.source.component", event.getSource().getComponent(), "sdm.lead.liatrio/operator-jenkins");
-    //Should we test everything for involved object?
+    assertNotEquals("event.involvedobject.name", "", event.getInvolvedObject().getName());
+    assertNotEquals("event.involvedobject.apiversion", "", event.getInvolvedObject().getApiVersion());
+    assertNotEquals("event.involvedobject.kind", "", event.getInvolvedObject().getKind());
     assertEquals("event.count", event.getCount(), Integer.valueOf(1));
     assertNotNull(event.getFirstTimestamp());
     assertNotNull(event.getLastTimestamp());
