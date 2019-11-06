@@ -4,6 +4,7 @@ package io.jenkins.plugins.kubernetes.controller;
 import static org.junit.Assert.*;
 
 import java.util.Optional;
+import java.util.Date;
 
 import org.junit.After;
 import org.junit.Before;
@@ -107,11 +108,22 @@ public class V1EventControllerTest {
 
   @Test
   public void testAsEvent() {
-    PipelineEvent pipelineEvent = new PipelineEvent();
+    PipelineEvent pipelineEvent = 
+      new PipelineEvent()
+          .error(Optional.empty());
     Event event = V1EventController.asEvent(pipelineEvent, "pipeline");
 
     assertNotNull("event", event);
     assertNotEquals("event.name", "", event.getMetadata().getName());
     assertEquals("event.metadata.labels.type", event.getMetadata().getLabels().get("type"), "pipeline");
-  }
+    assertEquals("event.reportingcomponent", event.getReportingComponent(), "sdm.lead.liatrio/operator-jenkins");
+    assertEquals("event.source.component", event.getSource().getComponent(), "sdm.lead.liatrio/operator-jenkins");
+    //Should we test everything for involved object?
+    assertEquals("event.count", event.getCount(), Integer.valueOf(1));  
+    }
+
+    public void testDateToString() {
+      Date testDate = new Date(2019, 10, 5, 12 , 30, 05);
+      assertEquals("date", controller.dateToString(testDate), "05-11-19-12:30:05");
+    }
 }

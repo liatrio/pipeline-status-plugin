@@ -3,6 +3,7 @@ package io.jenkins.plugins.kubernetes.controller;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.Date;
 import java.util.logging.Logger;
 
 import io.fabric8.kubernetes.api.model.Event;
@@ -68,14 +69,27 @@ public class V1EventController implements PipelineEventHandler {
     Map<String, String> labels = new HashMap<>();
     Map<String, String> annotations = new HashMap<>();
     labels.put("type", type);
+    String name = UUID.randomUUID().toString().toLowerCase();
     Event event = 
       new EventBuilder()
-        .withType(eventType(pipelineEvent))
         .withNewMetadata()
-          .withName(UUID.randomUUID().toString().toLowerCase())
+          .withName(name)
           .withLabels(labels)
           .withAnnotations(annotations)
           .endMetadata()
+        .withType(eventType(pipelineEvent))
+        .withReportingComponent("sdm.lead.liatrio/operator-jenkins")
+        .withNewSource()
+          .withComponent("sdm.lead.liatrio/operator-jenkins")
+          .endSource()
+        .withNewInvolvedObject()
+          .withName(name)
+          //.withNamespace("toolchain")
+          .withApiVersion("stable.liatr.io/v1")
+          .withKind("Build")
+          .endInvolvedObject()
+        .withCount(1)
+        // .withFirstTimestamp(dateToString(pipelineEvent.getTimestamp()))
         .build();
     return event; 
   }
@@ -91,4 +105,9 @@ public class V1EventController implements PipelineEventHandler {
       return "Normal";
     }
   }
+ 
+  public static String dateToString(Date d) {
+    return String.format("%td-%tm-%ty-%<tH:%<tM:%<tS", d, d, d, d, d, d);
+  }
+
 }
