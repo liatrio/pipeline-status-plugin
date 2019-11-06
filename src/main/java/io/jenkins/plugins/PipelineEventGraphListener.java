@@ -105,13 +105,14 @@ public class PipelineEventGraphListener implements GraphListener {
         return event;
     }
 
-    private StageEvent asStageEvent(FlowNode flowNode) {
+    private StageEvent asStageEvent(FlowNode flowNode) throws IOException, InterruptedException {
         String stageName = flowNode.getDisplayName();
         if (flowNode instanceof StepEndNode) {
             stageName = ((StepEndNode) flowNode).getStartNode().getDisplayName();
         }
         StageEvent event = 
             new StageEvent()
+                .pipelineEvent(asPipelineEvent(flowNode))
                 .stageName(stageName);
         return event;
     }

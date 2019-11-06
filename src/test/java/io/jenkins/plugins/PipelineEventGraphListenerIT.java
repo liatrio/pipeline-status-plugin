@@ -1,13 +1,9 @@
 package io.jenkins.plugins;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.stream.Collectors;
-
-import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.junit.Rule;
@@ -17,15 +13,13 @@ import org.jvnet.hudson.test.JenkinsRule;
 import hudson.EnvVars;
 import hudson.plugins.git.GitSCM;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
-import hudson.triggers.SCMTrigger;
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.jenkins.plugins.kubernetes.model.LiatrioV1Build;
 import io.jenkins.plugins.kubernetes.model.LiatrioV1BuildList;
 import io.jenkins.plugins.kubernetes.model.LiatrioV1BuildSpec;
-import io.jenkins.plugins.kubernetes.model.LiatrioV1BuildType;
 import io.jenkins.plugins.kubernetes.model.LiatrioV1Client;
-import io.jenkins.plugins.kubernetes.model.LiatrioV1ResultType;
+import io.jenkins.plugins.kubernetes.model.LiatrioV1ResultType;;
 
 public class PipelineEventGraphListenerIT {
     @Rule 
@@ -61,11 +55,5 @@ public class PipelineEventGraphListenerIT {
       assertEquals("result", LiatrioV1ResultType.success, spec.getResult());
       assertNotEquals("end_time", "", spec.getEndTime());
       liatrioClient.close();
-    }
-
-    private String getResource(String name) throws Exception {
-      InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream("Jenkinsfile.simple");
-      BufferedReader br = new BufferedReader(new InputStreamReader(is));
-      return br.lines().collect(Collectors.joining(System.lineSeparator()));
     }
 }

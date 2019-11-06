@@ -12,10 +12,10 @@ import java.util.logging.Logger;
 import io.fabric8.kubernetes.api.model.Event;
 import io.fabric8.kubernetes.api.model.EventBuilder;
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
-import io.fabric8.openshift.api.model.GroupRestrictionFluent.LabelsNested;
 import io.jenkins.plugins.PipelineEvent;
 import io.jenkins.plugins.PipelineEventHandler;
 import io.jenkins.plugins.StageEvent;
+import io.jenkins.plugins.kubernetes.model.LiatrioV1Build;
 import io.jenkins.plugins.kubernetes.model.LiatrioV1ResultType;
 
 public class V1EventController implements PipelineEventHandler {
@@ -76,6 +76,7 @@ public class V1EventController implements PipelineEventHandler {
     Map<String, String> labels = new HashMap<>();
     Map<String, String> annotations = new HashMap<>();
     labels.put("type", type);
+    LiatrioV1Build build = LiatrioV1BuildMapper.asBuild(pipelineEvent);
     String name = UUID.randomUUID().toString().toLowerCase();
     Event event = 
       new EventBuilder()
@@ -90,10 +91,9 @@ public class V1EventController implements PipelineEventHandler {
           .withComponent("sdm.lead.liatrio/operator-jenkins")
           .endSource()
         .withNewInvolvedObject()
-          .withName(name)
-          //.withNamespace("toolchain")
-          .withApiVersion("stable.liatr.io/v1")
-          .withKind("Build")
+          .withName(build.getMetadata().getName())
+          .withApiVersion(build.getApiVersion())
+          .withKind(build.getKind())
           .endInvolvedObject()
         .withCount(1)
         .withFirstTimestamp(dateToString(new Date()))

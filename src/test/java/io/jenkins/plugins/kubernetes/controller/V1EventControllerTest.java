@@ -38,6 +38,7 @@ public class V1EventControllerTest {
   public void testPipelineStartSuccess() {
     PipelineEvent event = 
       new PipelineEvent()
+          .timestamp(new Date())
           .error(Optional.empty());
 
     controller.handlePipelineStartEvent(event);
@@ -53,6 +54,7 @@ public class V1EventControllerTest {
   public void testPipelineStartFail() {
     PipelineEvent event = 
       new PipelineEvent()
+          .timestamp(new Date())
           .error(Optional.of(new Throwable("error")));
 
     controller.handlePipelineStartEvent(event);
@@ -68,6 +70,7 @@ public class V1EventControllerTest {
   public void testPipelineEndFail() {
     PipelineEvent event = 
       new PipelineEvent()
+          .timestamp(new Date())
           .error(Optional.of(new Throwable("error")));
     controller.handlePipelineEndEvent(event);
 
@@ -83,6 +86,7 @@ public class V1EventControllerTest {
   public void testPipelineEndSuccess() {
     PipelineEvent event = 
       new PipelineEvent()
+          .timestamp(new Date())
           .error(Optional.empty());
     controller.handlePipelineEndEvent(event);
 
@@ -96,6 +100,7 @@ public class V1EventControllerTest {
   public void testPipelineTypeEndSuccess() {
     PipelineEvent event = 
       new PipelineEvent()
+          .timestamp(new Date())
           .error(Optional.empty());
     controller.handlePipelineEndEvent(event);
 
@@ -111,6 +116,7 @@ public class V1EventControllerTest {
   public void testAsEvent() {
     PipelineEvent pipelineEvent = 
       new PipelineEvent()
+          .timestamp(new Date())
           .error(Optional.empty());
     Event event = V1EventController.asEvent(pipelineEvent, "pipeline");
 
@@ -128,6 +134,6 @@ public class V1EventControllerTest {
     @Test
     public void testDateToString() {
       Date testDate = new Date("05 October 2011 14:48 UTC");
-      assertEquals("date", controller.dateToString(testDate), "2011-10-05T14:48:00Z");
+      assertEquals("date", V1EventController.dateToString(testDate), "2011-10-05T14:48:00Z");
     }
 }
