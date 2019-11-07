@@ -94,9 +94,9 @@ public class PipelineEventGraphListener implements GraphListener {
         PipelineEvent event = 
             new PipelineEvent()
                 .product(envVars.get("product","unknown"))
-                .jobName(envVars.get("JOB_NAME", "unknown"))
+                .jobName(run.getParent().getFullName())
                 .stages(getDeclarativeStages(run))
-                .buildId(envVars.get("BUILD_ID", "1"))
+                .buildId(run.getId())
                 .timestamp(run.getTime())
                 .error(Optional.ofNullable(flowNode.getError()).map(ErrorAction::getError))
                 .branch(checkoutAction.map(CheckoutAction::getRepoUrl).orElse(null))
