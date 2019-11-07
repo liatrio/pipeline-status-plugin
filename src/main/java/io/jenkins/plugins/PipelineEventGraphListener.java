@@ -46,10 +46,12 @@ public class PipelineEventGraphListener implements GraphListener {
 
     private final ArrayList<PipelineEventHandler> eventHandlers = new ArrayList<>();
 
+    
     public PipelineEventGraphListener() {
-        eventHandlers.add(new LiatrioV1BuildController(client));
-        eventHandlers.add(new V1EventController(client));
+        eventHandlers.add(new LiatrioV1BuildController(getClient()));
+        eventHandlers.add(new V1EventController(getClient()));
     }
+    
 
     public static void setClient(NamespacedKubernetesClient client) {
         PipelineEventGraphListener.client = client;
@@ -99,7 +101,7 @@ public class PipelineEventGraphListener implements GraphListener {
                 .error(Optional.ofNullable(flowNode.getError()).map(ErrorAction::getError))
                 .gitUrl(getGitRepo(run).map(URIish::toString).orElse(null))
                 .branch(envVars.get("GIT_BRANCH", envVars.get("BRANCH_NAME",null)))
-                .commitId(envVars.get("GIT_COMMIT", null))
+                .commitId(envVars.get("GIT_COMMIT", "null"))
                 .commitMessage("TODO!")
                 .committers(Lists.newArrayList("TODO!"));
         return event;

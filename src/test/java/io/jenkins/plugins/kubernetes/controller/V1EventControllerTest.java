@@ -1,6 +1,5 @@
 package io.jenkins.plugins.kubernetes.controller;
 
-
 import static org.junit.Assert.*;
 
 import java.util.Optional;
@@ -13,9 +12,11 @@ import org.junit.Test;
 
 import io.fabric8.kubernetes.api.model.Event;
 import io.fabric8.kubernetes.api.model.EventList;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.jenkins.plugins.PipelineEvent;
+import io.jenkins.plugins.kubernetes.model.LiatrioV1Build;
 
 public class V1EventControllerTest {
   @Rule
@@ -118,7 +119,19 @@ public class V1EventControllerTest {
       new PipelineEvent()
           .timestamp(new Date())
           .error(Optional.empty());
-    Event event = V1EventController.asEvent(pipelineEvent, "pipeline");
+
+    LiatrioV1Build build = new LiatrioV1Build();
+    ObjectMeta metadata = new ObjectMeta();
+    metadata.setName("testbuildname");
+    metadata.setNamespace( "default");
+    metadata.setResourceVersion("499779");
+    metadata.setUid("e6d57ef8-017e-11ea-ba85-025000000001");
+    
+    build.setApiVersion("stable.liatr.io/v1");
+    build.setKind("Build");
+    build.setMetadata(metadata);
+      
+    Event event = V1EventController.asEvent(pipelineEvent, "pipeline", build);
 
     assertNotNull("event", event);
     assertNotEquals("event.name", "", event.getMetadata().getName());
@@ -129,8 +142,11 @@ public class V1EventControllerTest {
     assertEquals("event.reportingcomponent", event.getReportingComponent(), "sdm.lead.liatrio/operator-jenkins");
     assertEquals("event.source.component", event.getSource().getComponent(), "sdm.lead.liatrio/operator-jenkins");
     assertNotEquals("event.involvedobject.name", "", event.getInvolvedObject().getName());
-    assertNotEquals("event.involvedobject.apiversion", "", event.getInvolvedObject().getApiVersion());
-    assertNotEquals("event.involvedobject.kind", "", event.getInvolvedObject().getKind());
+    assertEquals("event.involvedobject.namespace", event.getInvolvedObject().getNamespace(), "default");
+    assertEquals("event.involvedobject.apiversion",event.getInvolvedObject().getApiVersion(), "stable.liatr.io/v1");
+    assertEquals("event.involvedobject.kind", event.getInvolvedObject().getKind(), "Build");
+    assertEquals("event.involvedobject.resourceversion", event.getInvolvedObject().getResourceVersion(), "499779");
+    assertEquals("event.involvedobject.uid", event.getInvolvedObject().getUid(), "e6d57ef8-017e-11ea-ba85-025000000001");
     assertEquals("event.count", event.getCount(), Integer.valueOf(1));
     assertNotNull(event.getFirstTimestamp());
     assertNotNull(event.getLastTimestamp());
