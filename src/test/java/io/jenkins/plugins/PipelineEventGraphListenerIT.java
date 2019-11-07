@@ -6,7 +6,6 @@ import static org.junit.Assert.assertNotNull;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.stream.Collectors;
 
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
@@ -28,6 +27,7 @@ import io.jenkins.plugins.kubernetes.model.LiatrioV1BuildList;
 import io.jenkins.plugins.kubernetes.model.LiatrioV1BuildSpec;
 import io.jenkins.plugins.kubernetes.model.LiatrioV1Client;
 import io.jenkins.plugins.kubernetes.model.LiatrioV1ResultType;
+import jline.internal.InputStreamReader;;
 
 public class PipelineEventGraphListenerIT {
     @Rule 
@@ -68,9 +68,6 @@ public class PipelineEventGraphListenerIT {
       EventList events = client.events().list();
       assertNotNull(events);
       assertEquals(8, events.getItems().size());
-
-      // Run pipeline and get logs
-      j.buildAndAssertSuccess(project);
     }
 
     @Test 
