@@ -1,10 +1,11 @@
 package io.jenkins.plugins.kubernetes.controller;
 
-
 import static org.junit.Assert.*;
 
 import java.util.Optional;
 import java.util.Date;
+
+
 import java.util.Map;
 
 import org.junit.After;
@@ -14,9 +15,11 @@ import org.junit.Test;
 
 import io.fabric8.kubernetes.api.model.Event;
 import io.fabric8.kubernetes.api.model.EventList;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.jenkins.plugins.PipelineEvent;
+import io.jenkins.plugins.kubernetes.model.LiatrioV1Build;
 import io.jenkins.plugins.StageEvent;
 
 public class V1EventControllerTest {
@@ -24,6 +27,7 @@ public class V1EventControllerTest {
   public KubernetesServer server = new KubernetesServer(true, true);
 
   private V1EventController controller;
+  
 
   @Before
   public void setupController() {
@@ -37,7 +41,10 @@ public class V1EventControllerTest {
 
   @Test
   public void testPipelineStartSuccess() {
-    PipelineEvent event = new PipelineEvent().timestamp(new Date()).error(Optional.empty());
+    PipelineEvent event = 
+      new PipelineEvent()
+          .timestamp(new Date())
+          .error(Optional.empty());
 
     controller.handlePipelineStartEvent(event);
 
@@ -50,7 +57,10 @@ public class V1EventControllerTest {
 
   @Test
   public void testPipelineStartFail() {
-    PipelineEvent event = new PipelineEvent().timestamp(new Date()).error(Optional.of(new Throwable("error")));
+    PipelineEvent event = 
+      new PipelineEvent()
+          .timestamp(new Date())
+          .error(Optional.of(new Throwable("error")));
 
     controller.handlePipelineStartEvent(event);
 
@@ -63,7 +73,10 @@ public class V1EventControllerTest {
 
   @Test
   public void testPipelineEndFail() {
-    PipelineEvent event = new PipelineEvent().timestamp(new Date()).error(Optional.of(new Throwable("error")));
+    PipelineEvent event = 
+      new PipelineEvent()
+          .timestamp(new Date())
+          .error(Optional.of(new Throwable("error")));
     controller.handlePipelineEndEvent(event);
 
     NamespacedKubernetesClient client = server.getClient();
@@ -73,9 +86,13 @@ public class V1EventControllerTest {
     assertEquals("pipeline fail", events.getItems().get(0).getMessage());
   }
 
+
   @Test
   public void testPipelineEndSuccess() {
-    PipelineEvent event = new PipelineEvent().timestamp(new Date()).error(Optional.empty());
+    PipelineEvent event = 
+      new PipelineEvent()
+          .timestamp(new Date())
+          .error(Optional.empty());
     controller.handlePipelineEndEvent(event);
 
     NamespacedKubernetesClient client = server.getClient();
@@ -131,7 +148,19 @@ public class V1EventControllerTest {
       new PipelineEvent()
           .timestamp(new Date())
           .error(Optional.empty());
-    Event event = V1EventController.asEvent(pipelineEvent, "pipeline");
+
+    LiatrioV1Build build = new LiatrioV1Build();
+    ObjectMeta metadata = new ObjectMeta();
+    metadata.setName("testbuildname");
+    metadata.setNamespace( "default");
+    metadata.setResourceVersion("499779");
+    metadata.setUid("e6d57ef8-017e-11ea-ba85-025000000001");
+    
+    build.setApiVersion("stable.liatr.io/v1");
+    build.setKind("Build");
+    build.setMetadata(metadata);
+      
+    Event event = V1EventController.asEvent(pipelineEvent, "pipeline", build);
 
     assertNotNull("event", event);
     assertNotEquals("event.name", "", event.getMetadata().getName());
@@ -142,8 +171,11 @@ public class V1EventControllerTest {
     assertEquals("event.reportingcomponent", event.getReportingComponent(), "sdm.lead.liatrio/operator-jenkins");
     assertEquals("event.source.component", event.getSource().getComponent(), "sdm.lead.liatrio/operator-jenkins");
     assertNotEquals("event.involvedobject.name", "", event.getInvolvedObject().getName());
-    assertNotEquals("event.involvedobject.apiversion", "", event.getInvolvedObject().getApiVersion());
-    assertNotEquals("event.involvedobject.kind", "", event.getInvolvedObject().getKind());
+    assertEquals("event.involvedobject.namespace", event.getInvolvedObject().getNamespace(), "default");
+    assertEquals("event.involvedobject.apiversion",event.getInvolvedObject().getApiVersion(), "stable.liatr.io/v1");
+    assertEquals("event.involvedobject.kind", event.getInvolvedObject().getKind(), "Build");
+    assertEquals("event.involvedobject.resourceversion", event.getInvolvedObject().getResourceVersion(), "499779");
+    assertEquals("event.involvedobject.uid", event.getInvolvedObject().getUid(), "e6d57ef8-017e-11ea-ba85-025000000001");
     assertEquals("event.count", event.getCount(), Integer.valueOf(1));
     assertNotNull(event.getFirstTimestamp());
     assertNotNull(event.getLastTimestamp());
