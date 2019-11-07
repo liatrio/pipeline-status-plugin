@@ -54,6 +54,7 @@ public class PipelineEventGraphListenerIT {
       // Run pipeline and get logs
       j.buildAndAssertSuccess(project);
 
+
       LiatrioV1Client liatrioClient = new LiatrioV1Client(client);
       LiatrioV1BuildList builds = liatrioClient.builds().list();
       assertNotNull(builds);

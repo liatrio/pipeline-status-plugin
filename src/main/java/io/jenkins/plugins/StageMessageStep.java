@@ -2,7 +2,6 @@ package io.jenkins.plugins;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
@@ -14,7 +13,6 @@ import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
-import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -28,7 +26,6 @@ import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONObject;
 
 public class StageMessageStep extends Builder implements SimpleBuildStep {
-  private static Logger logger = Logger.getLogger(StageMessageStep.class.getName());
   private String message;
 
   public String getMessage() { 
