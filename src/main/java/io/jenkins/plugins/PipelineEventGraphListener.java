@@ -1,29 +1,35 @@
 package io.jenkins.plugins;
 
-import com.google.common.collect.Lists;
 
 import hudson.*;
 import hudson.model.*;
 import hudson.model.Queue;
-import hudson.plugins.git.GitSCM;
+import hudson.plugins.git.GitException;
+import hudson.plugins.git.util.BuildData;
+import hudson.remoting.VirtualChannel;
 import hudson.util.LogTaskListener;
 
 import org.jenkinsci.plugins.workflow.actions.ErrorAction;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepEndNode;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepStartNode;
 import org.jenkinsci.plugins.workflow.flow.*;
+import org.jenkinsci.plugins.workflow.graph.FlowEndNode;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
-import org.jenkinsci.plugins.workflow.job.WorkflowJob;
+import org.jenkinsci.plugins.workflow.graph.FlowStartNode;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.jenkins.plugins.kubernetes.controller.LiatrioV1BuildController;
 import io.jenkins.plugins.kubernetes.controller.V1EventController;
+import jenkins.MasterToSlaveFileCallable;
+import jenkins.scm.RunWithSCM;
 import net.sf.json.JSONObject;
 
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 
-import org.eclipse.jgit.transport.URIish;
+import org.eclipse.jgit.lib.ObjectId;
+import org.jenkinsci.plugins.gitclient.Git;
 import org.jenkinsci.plugins.pipeline.modeldefinition.actions.ExecutionModelAction;
 import org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTEnvironment;
 import org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKeyValueOrMethodCallPair;
@@ -36,6 +42,7 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStages;
 import java.io.*;
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.logging.Level;
 
@@ -54,6 +61,7 @@ public class PipelineEventGraphListener implements GraphListener {
     public static void setClient(NamespacedKubernetesClient client) {
         PipelineEventGraphListener.client = client;
     }
+
     public static NamespacedKubernetesClient getClient() {
         if (client == null) {
             client = new DefaultKubernetesClient();
@@ -64,14 +72,14 @@ public class PipelineEventGraphListener implements GraphListener {
     @Override
     public void onNewHead(FlowNode flowNode) {
         try {
-            if(isPipelineNode(flowNode)) {
+            if (isPipelineNode(flowNode)) {
                 PipelineEvent event = asPipelineEvent(flowNode);
-                if (flowNode.getClass() == StepStartNode.class) {
+                if (flowNode.getClass() == FlowStartNode.class) {
                     eventHandlers.forEach(h -> h.handlePipelineStartEvent(event));
-                } else if (flowNode.getClass() == StepEndNode.class) {
+                } else if (flowNode.getClass() == FlowEndNode.class) {
                     eventHandlers.forEach(h -> h.handlePipelineEndEvent(event));
                 }
-            } else if(isStageNode(flowNode)) {
+            } else if (isStageNode(flowNode)) {
                 StageEvent event = asStageEvent(flowNode);
 
                 if (flowNode.getClass() == StepStartNode.class) {
@@ -97,11 +105,11 @@ public class PipelineEventGraphListener implements GraphListener {
                 .buildId(envVars.get("BUILD_ID", "1"))
                 .timestamp(run.getTime())
                 .error(Optional.ofNullable(flowNode.getError()).map(ErrorAction::getError))
-                .gitUrl(getGitRepo(run).map(URIish::toString).orElse(null))
+                .gitUrl(getGitRepo(run).orElse(null))
                 .branch(envVars.get("GIT_BRANCH", envVars.get("BRANCH_NAME",null)))
-                .commitId(envVars.get("GIT_COMMIT", null))
-                .commitMessage("TODO!")
-                .committers(Lists.newArrayList("TODO!"));
+                .commitId(getGitCommitId(run).orElse(null))
+                .commitMessage(getGitCommitMessage(run).orElse(null))
+                .committers(getGitCommitters(run));
         return event;
     }
 
@@ -126,19 +134,7 @@ public class PipelineEventGraphListener implements GraphListener {
     }
 
     private boolean isPipelineNode(FlowNode flowNode) {
-        // Check for StepStartNode with no parents
-        if (flowNode instanceof StepStartNode) {
-            StepStartNode stepNode = (StepStartNode) flowNode;
-            return stepNode.getParents().stream().allMatch(p -> p.getParentIds().isEmpty());
-        } 
-        
-        // Check for StepEndNode with a startNode that isPipelineNode
-        if (flowNode instanceof StepEndNode) {
-            StepEndNode endNode = (StepEndNode) flowNode;
-            return isPipelineNode(endNode.getStartNode());
-        }
-
-        return false;
+        return (flowNode instanceof FlowStartNode || flowNode instanceof FlowEndNode);
     }
 
     private boolean isStageNode(FlowNode flowNode) {
@@ -157,16 +153,54 @@ public class PipelineEventGraphListener implements GraphListener {
         return false;
     }
 
-    private Optional<URIish> getGitRepo(Run<?, ?> run) {
-        Optional<URIish> uri = 
-          Stream.of(run.getParent())
-                .filter(WorkflowJob.class::isInstance).map(WorkflowJob.class::cast)
-                .map(w -> w.getSCMs()).flatMap(Collection::stream)
-                .filter(GitSCM.class::isInstance).map(GitSCM.class::cast)
-                .map(g -> g.getRepositories()).flatMap(List::stream)
-                .map(r -> r.getURIs()).flatMap(List::stream)
-                .findFirst();
+    private Optional<String> getGitRepo(Run<?, ?> run) {
+        Optional<String> uri = 
+            Stream.of(run.getAction(BuildData.class))
+                  .filter(Objects::nonNull)
+                  .map(bd -> bd.getRemoteUrls())
+                  .filter(Objects::nonNull)
+                  .flatMap(Set::stream)
+                  .findFirst();
         return uri;
+    }
+
+    private Optional<String> getGitCommitId(Run<?, ?> run) {
+        Optional<String> sha1 = 
+            Stream.of(run.getAction(BuildData.class))
+                  .filter(Objects::nonNull)
+                  .map(bd -> bd.getLastBuiltRevision())
+                  .filter(Objects::nonNull)
+                  .map(r -> r.getSha1String())
+                  .findFirst();
+        return sha1;
+    }
+
+    private Optional<String> getGitCommitMessage(Run<?, ?> run) {
+        FilePath workspace = run.getExecutor().getCurrentWorkspace();
+        Object rtn = workspace.act(new MasterToSlaveFileCallable() {
+            public String invoke(File f, VirtualChannel channel) throws IOException, InterruptedException {
+                try {
+                    ObjectId oid = Git.with(null, null).in(f).getClient().getRepository()
+                            .resolve("refs/heads/" + branch);
+                    return oid.name();
+                } catch (GitException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+
+        return Optional.empty();
+    }
+
+    private List<String> getGitCommitters(Run<?, ?> run) {
+        List<String> committers= 
+            Stream.of(run)
+                  .filter(WorkflowRun.class::isInstance)
+                  .map(WorkflowRun.class::cast)
+                  .map(wr -> wr.getCulpritIds()).flatMap(Set::stream)
+                  .filter(Objects::nonNull)
+                  .collect(Collectors.toList());
+        return committers;
     }
 
     protected static List<String> getDeclarativeStages(Run<?, ?> run) {
