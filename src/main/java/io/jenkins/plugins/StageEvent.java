@@ -5,6 +5,21 @@ import java.util.Objects;
 public class StageEvent {
   private PipelineEvent pipelineEvent;
   private String stageName;
+  private String statusMessage;
+
+  public String getStatusMessage() {
+    return this.statusMessage;
+  }
+
+  public void setStatusMessage(String statusMessage) {
+    this.statusMessage = statusMessage;
+  }
+
+  public StageEvent statusMessage(String statusMessage) {
+    this.statusMessage = statusMessage;
+    return this;
+  }
+
 
   public PipelineEvent getPipelineEvent() {
     return this.pipelineEvent;

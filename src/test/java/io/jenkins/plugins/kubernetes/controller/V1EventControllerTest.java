@@ -5,6 +5,9 @@ import static org.junit.Assert.*;
 import java.util.Optional;
 import java.util.Date;
 
+
+import java.util.Map;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -17,6 +20,7 @@ import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.jenkins.plugins.PipelineEvent;
 import io.jenkins.plugins.kubernetes.model.LiatrioV1Build;
+import io.jenkins.plugins.StageEvent;
 
 public class V1EventControllerTest {
   @Rule
@@ -97,12 +101,10 @@ public class V1EventControllerTest {
     assertEquals(1, events.getItems().size());
     assertEquals("pipeline success", events.getItems().get(0).getMessage());
   }
+
   @Test
   public void testPipelineTypeEndSuccess() {
-    PipelineEvent event = 
-      new PipelineEvent()
-          .timestamp(new Date())
-          .error(Optional.empty());
+    PipelineEvent event = new PipelineEvent().timestamp(new Date()).error(Optional.empty());
     controller.handlePipelineEndEvent(event);
 
     NamespacedKubernetesClient client = server.getClient();
@@ -111,6 +113,33 @@ public class V1EventControllerTest {
     assertEquals(1, events.getItems().size());
     assertEquals("Normal", events.getItems().get(0).getType());
     assertEquals("pipeline success", events.getItems().get(0).getMessage());
+  }
+
+  @Test
+  public void testStageEndSuccessWithMessage() {
+    PipelineEvent event = 
+      new PipelineEvent()
+          .timestamp(new Date())
+          .error(Optional.empty());
+    StageEvent stageEvent = 
+      new StageEvent() 
+          .pipelineEvent(event)
+          .stageName("my stage")
+          .statusMessage("success message goes here");
+
+    controller.handleStageEndEvent(stageEvent);
+
+    NamespacedKubernetesClient client = server.getClient();
+    EventList events = client.events().list();
+    assertNotNull(events);
+    assertEquals(1, events.getItems().size());
+    Event e = events.getItems().get(0);
+    assertEquals("Normal", e.getType());
+    assertEquals("stage success", e.getMessage());
+
+    Map<String, String> annotations = e.getMetadata().getAnnotations();
+    assertEquals("my stage", annotations.get("stageName"));
+    assertEquals("success message goes here", annotations.get("statusMessage"));
   }
 
   @Test

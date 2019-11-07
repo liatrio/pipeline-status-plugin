@@ -24,7 +24,7 @@ public class LiatrioV1BuildController implements PipelineEventHandler {
 
   @Override
   public void handlePipelineStartEvent(PipelineEvent event) {
-    logger.info("PipelineStartEvent --> Creating build CR");
+    logger.fine("PipelineStartEvent --> Creating build CR");
     LiatrioV1Build build = LiatrioV1BuildMapper.asBuild(event);
     build.getSpec()
          .result(LiatrioV1ResultType.inProgress);
@@ -34,7 +34,7 @@ public class LiatrioV1BuildController implements PipelineEventHandler {
 
   @Override
   public void handlePipelineEndEvent(PipelineEvent event) {
-    logger.info("PipelineEndEvent --> Updating build CR");
+    logger.fine("PipelineEndEvent --> Updating build CR");
     LiatrioV1Build build = LiatrioV1BuildMapper.asBuild(event);
     build.getSpec()
          .endTime(new Date())

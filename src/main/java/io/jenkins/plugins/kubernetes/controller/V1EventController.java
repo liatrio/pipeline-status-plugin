@@ -15,6 +15,9 @@ import io.fabric8.kubernetes.api.model.Event;
 import io.fabric8.kubernetes.api.model.EventBuilder;
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 
+import io.fabric8.kubernetes.api.model.Event;
+import io.fabric8.kubernetes.api.model.EventBuilder;
+import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.jenkins.plugins.PipelineEvent;
 import io.jenkins.plugins.PipelineEventHandler;
 import io.jenkins.plugins.StageEvent;
@@ -27,7 +30,6 @@ public class V1EventController implements PipelineEventHandler {
   private static Logger logger = Logger.getLogger(V1EventController.class.getName());
   private String namespace;
   private LiatrioV1Client crClient; 
-
 
   private NamespacedKubernetesClient client;
   private static final DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'"); // Quoted "Z" to indicate UTC, no timezone offset
@@ -44,7 +46,7 @@ public class V1EventController implements PipelineEventHandler {
 
   @Override
   public void handlePipelineStartEvent(PipelineEvent pipelineEvent) {
-    logger.info("PipelineStartEvent --> New event CR");
+    logger.fine("PipelineStartEvent --> New event CR");
     LiatrioV1Build build = LiatrioV1BuildMapper.asBuild(pipelineEvent);
     build = Optional.ofNullable(crClient.builds().inNamespace(namespace).withName(build.getMetadata().getName()).get()).orElse(new LiatrioV1Build());
 
@@ -64,7 +66,7 @@ public class V1EventController implements PipelineEventHandler {
     LiatrioV1Build build = LiatrioV1BuildMapper.asBuild(pipelineEvent);
     build = Optional.ofNullable(crClient.builds().inNamespace(namespace).withName(build.getMetadata().getName()).get()).orElse(new LiatrioV1Build());
  
-    logger.info("PipelineEndEvent --> New event CR");
+    logger.fine("PipelineEndEvent --> New event CR");
     Event event = asEvent(pipelineEvent, "pipeline", build);
     event.setMessage("pipeline "+pipelineEvent.getError()
                       .map(t -> LiatrioV1ResultType.fail)
@@ -81,7 +83,7 @@ public class V1EventController implements PipelineEventHandler {
     LiatrioV1Build build = LiatrioV1BuildMapper.asBuild(stageEvent.getPipelineEvent());
     build = Optional.ofNullable(crClient.builds().inNamespace(namespace).withName(build.getMetadata().getName()).get()).orElse(new LiatrioV1Build());
 
-    logger.info("StageStartEvent --> New event CR for stage: "+stageEvent.getStageName());
+    logger.fine("StageStartEvent --> New event CR for stage: "+stageEvent.getStageName());
     Event event = asEvent(stageEvent.getPipelineEvent(), "stage", build);
     event.setMessage("stage "+stageEvent.getPipelineEvent().getError()
                       .map(t -> LiatrioV1ResultType.fail)
@@ -99,7 +101,7 @@ public class V1EventController implements PipelineEventHandler {
     LiatrioV1Build build = LiatrioV1BuildMapper.asBuild(stageEvent.getPipelineEvent());
     build = Optional.ofNullable(crClient.builds().inNamespace(namespace).withName(build.getMetadata().getName()).get()).orElse(new LiatrioV1Build());
 
-    logger.info("StageEndEvent --> New event CR: "+stageEvent.getStageName());
+    logger.fine("StageEndEvent --> New event CR: "+stageEvent.getStageName());
     Event event = asEvent(stageEvent.getPipelineEvent(), "stage", build);
     event.setMessage("stage "+stageEvent.getPipelineEvent().getError()
                       .map(t -> LiatrioV1ResultType.fail)
@@ -110,6 +112,7 @@ public class V1EventController implements PipelineEventHandler {
                     .orElse(LiatrioV1ResultType.success)
                     .toString());
     event.getMetadata().getAnnotations().put("stageName",stageEvent.getStageName());
+    event.getMetadata().getAnnotations().put("statusMessage",stageEvent.getStatusMessage());
     client.events().inNamespace(this.namespace).create(event);
   }
 
