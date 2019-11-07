@@ -15,9 +15,6 @@ import io.fabric8.kubernetes.api.model.Event;
 import io.fabric8.kubernetes.api.model.EventBuilder;
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 
-import io.fabric8.kubernetes.api.model.Event;
-import io.fabric8.kubernetes.api.model.EventBuilder;
-import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.jenkins.plugins.PipelineEvent;
 import io.jenkins.plugins.PipelineEventHandler;
 import io.jenkins.plugins.StageEvent;

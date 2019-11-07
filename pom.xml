@@ -32,17 +32,29 @@
     </scm>
     -->
     <build>
-			<plugins>
-				<plugin>
-					<groupId>org.jenkins-ci.tools</groupId>
-					<artifactId>maven-hpi-plugin</artifactId>
-					<configuration>
-						<pluginFirstClassLoader>true</pluginFirstClassLoader>
-					</configuration>
-				</plugin>
-			</plugins>
-		</build>
-  
+        <plugins>
+            <plugin>
+                <groupId>org.jenkins-ci.tools</groupId>
+                <artifactId>maven-hpi-plugin</artifactId>
+                <configuration>
+                    <pluginFirstClassLoader>true</pluginFirstClassLoader>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.0.0-M3</version>
+                <executions>
+                <execution>
+                    <goals>
+                    <goal>integration-test</goal>
+                    <goal>verify</goal>
+                    </goals>
+                </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
     <dependencies>
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
