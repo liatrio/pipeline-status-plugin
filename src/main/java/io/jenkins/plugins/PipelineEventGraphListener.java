@@ -48,7 +48,7 @@ public class PipelineEventGraphListener implements GraphListener {
 
     public PipelineEventGraphListener() {
         eventHandlers.add(new LiatrioV1BuildController(client));
-        eventHandlers.add(new V1EventController());
+        eventHandlers.add(new V1EventController(client));
     }
 
     public static void setClient(NamespacedKubernetesClient client) {
@@ -105,13 +105,22 @@ public class PipelineEventGraphListener implements GraphListener {
         return event;
     }
 
-    private StageEvent asStageEvent(FlowNode flowNode) {
+    private StageEvent asStageEvent(FlowNode flowNode) throws IOException, InterruptedException {
         String stageName = flowNode.getDisplayName();
+        String stageMessage = "";
         if (flowNode instanceof StepEndNode) {
-            stageName = ((StepEndNode) flowNode).getStartNode().getDisplayName();
+            StepStartNode stageStartNode = ((StepEndNode) flowNode).getStartNode();
+            stageName = stageStartNode.getDisplayName();
+            StageMessageAction action = stageStartNode.getAction(StageMessageAction.class);
+            if(action != null) {
+                stageMessage = action.getMessage();
+            }
+
         }
         StageEvent event = 
             new StageEvent()
+                .pipelineEvent(asPipelineEvent(flowNode))
+                .statusMessage(stageMessage)
                 .stageName(stageName);
         return event;
     }

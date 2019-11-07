@@ -3,13 +3,35 @@ package io.jenkins.plugins;
 import java.util.Objects;
 
 public class StageEvent {
+  private PipelineEvent pipelineEvent;
   private String stageName;
+  private String statusMessage;
 
-  public StageEvent() {
+  public String getStatusMessage() {
+    return this.statusMessage;
   }
 
-  public StageEvent(String stageName) {
-    this.stageName = stageName;
+  public void setStatusMessage(String statusMessage) {
+    this.statusMessage = statusMessage;
+  }
+
+  public StageEvent statusMessage(String statusMessage) {
+    this.statusMessage = statusMessage;
+    return this;
+  }
+
+
+  public PipelineEvent getPipelineEvent() {
+    return this.pipelineEvent;
+  }
+
+  public void setPipelineEvent(PipelineEvent pipelineEvent) {
+    this.pipelineEvent = pipelineEvent;
+  }
+
+  public StageEvent pipelineEvent(PipelineEvent pipelineEvent) {
+    this.pipelineEvent = pipelineEvent;
+    return this;
   }
 
   public String getStageName() {
