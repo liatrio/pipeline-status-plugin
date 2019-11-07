@@ -68,6 +68,10 @@ public class PipelineEventGraphListenerIT {
       EventList events = client.events().list();
       assertNotNull(events);
       assertEquals(8, events.getItems().size());
+      assertEquals("first event = build", build.getMetadata().getName(), events.getItems().get(0).getInvolvedObject().getName());
+      assertEquals("last event = build", build.getMetadata().getName(), events.getItems().get(7).getInvolvedObject().getName());
+
+
     }
 
     @Test 

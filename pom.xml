@@ -31,6 +31,18 @@
         <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
     </scm>
     -->
+    <build>
+			<plugins>
+				<plugin>
+					<groupId>org.jenkins-ci.tools</groupId>
+					<artifactId>maven-hpi-plugin</artifactId>
+					<configuration>
+						<pluginFirstClassLoader>true</pluginFirstClassLoader>
+					</configuration>
+				</plugin>
+			</plugins>
+		</build>
+  
     <dependencies>
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>

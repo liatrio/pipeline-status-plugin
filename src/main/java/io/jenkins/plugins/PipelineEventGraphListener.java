@@ -42,10 +42,12 @@ public class PipelineEventGraphListener implements GraphListener {
 
     private final ArrayList<PipelineEventHandler> eventHandlers = new ArrayList<>();
 
+    
     public PipelineEventGraphListener() {
-        eventHandlers.add(new LiatrioV1BuildController(client));
-        eventHandlers.add(new V1EventController(client));
+        eventHandlers.add(new LiatrioV1BuildController(getClient()));
+        eventHandlers.add(new V1EventController(getClient()));
     }
+    
 
     public static void setClient(NamespacedKubernetesClient client) {
         PipelineEventGraphListener.client = client;
