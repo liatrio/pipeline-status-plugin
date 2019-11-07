@@ -34,7 +34,7 @@ public class V1EventController implements PipelineEventHandler {
 
   @Override
   public void handlePipelineStartEvent(PipelineEvent pipelineEvent) {
-    logger.info("PipelineStartEvent --> New event CR");
+    logger.fine("PipelineStartEvent --> New event CR");
 
     Event event = asEvent(pipelineEvent, "pipeline");
     event.setMessage("pipeline "+pipelineEvent.getError()
@@ -49,7 +49,7 @@ public class V1EventController implements PipelineEventHandler {
   }
   @Override
   public void handlePipelineEndEvent(PipelineEvent pipelineEvent) {
-    logger.info("PipelineEndEvent --> New event CR");
+    logger.fine("PipelineEndEvent --> New event CR");
     Event event = asEvent(pipelineEvent, "pipeline");
     event.setMessage("pipeline "+pipelineEvent.getError()
                       .map(t -> LiatrioV1ResultType.fail)
@@ -63,7 +63,7 @@ public class V1EventController implements PipelineEventHandler {
   }
   @Override
   public void handleStageStartEvent(StageEvent stageEvent) {
-    logger.info("StageStartEvent --> New event CR for stage: "+stageEvent.getStageName());
+    logger.fine("StageStartEvent --> New event CR for stage: "+stageEvent.getStageName());
     Event event = asEvent(stageEvent.getPipelineEvent(), "stage");
     event.setMessage("stage "+stageEvent.getPipelineEvent().getError()
                       .map(t -> LiatrioV1ResultType.fail)
@@ -78,7 +78,7 @@ public class V1EventController implements PipelineEventHandler {
   }
   @Override
   public void handleStageEndEvent(StageEvent stageEvent) {
-    logger.info("StageEndEvent --> New event CR: "+stageEvent.getStageName());
+    logger.fine("StageEndEvent --> New event CR: "+stageEvent.getStageName());
     Event event = asEvent(stageEvent.getPipelineEvent(), "stage");
     event.setMessage("stage "+stageEvent.getPipelineEvent().getError()
                       .map(t -> LiatrioV1ResultType.fail)
@@ -89,6 +89,7 @@ public class V1EventController implements PipelineEventHandler {
                     .orElse(LiatrioV1ResultType.success)
                     .toString());
     event.getMetadata().getAnnotations().put("stageName",stageEvent.getStageName());
+    event.getMetadata().getAnnotations().put("statusMessage",stageEvent.getStatusMessage());
     client.events().create(event);
   }
 
@@ -99,7 +100,6 @@ public class V1EventController implements PipelineEventHandler {
     labels.put("type", type);
     labels.put("correlationid", build.getMetadata().getName());
     Map<String, String> annotations = new HashMap<>();
-    annotations.put("statusMessage",""); // TODO: address this in ENG-1309
     String name = UUID.randomUUID().toString().toLowerCase();
     Event event = 
       new EventBuilder()

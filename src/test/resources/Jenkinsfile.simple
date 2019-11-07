@@ -9,6 +9,7 @@ pipeline {
       stage('Stage2') {
         steps {
           echo "Hello from 2!"
+          stageMessage "sample status message"
         }
       }
     }
