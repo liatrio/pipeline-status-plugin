@@ -9,12 +9,12 @@ test:
 	@mvn test
 
 build:
-	@mvn clean package
+	@mvn clean install 
 
 run: 
 	@mvn hpi:run
 
 deploy:
-	@curl -u $(ARTIFACTORY_CREDS) -X PUT "$(HELM_REPOSITORY)/pipeline-status-$(VERSION).hpi" -T /Users/jordana/liatrio/pipeline-status-plugin/target/pipeline-status-plugin.hpi
+	@curl -u $(ARTIFACTORY_CREDS) -X PUT "$(HELM_REPOSITORY)/pipeline-status-$(VERSION).hpi" -T target/pipeline-status-plugin.hpi
 
 .PHONY: build test run

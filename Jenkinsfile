@@ -6,6 +6,7 @@ pipeline {
         stage('Test & Package Artifact') {
             steps {
                 container('maven-test') {
+                    sh "pwd"
                     sh "make build"
                     sh "sleep 360"
                 }
