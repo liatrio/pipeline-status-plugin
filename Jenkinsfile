@@ -5,7 +5,7 @@ pipeline {
     stages {
         stage('Test & Package Artifact') {
             steps {
-                container('maven') {
+                container('maven-test') {
                     sh "make build"
                 }
             }
