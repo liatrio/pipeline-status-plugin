@@ -3,12 +3,10 @@ package io.jenkins.plugins;
 import java.util.List;
 import java.util.Objects;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 
 import hudson.model.InvisibleAction;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
-@JsonInclude(Include.NON_NULL)
+
 public class CheckoutAction extends InvisibleAction {
   private final String repoUrl;
   private final String branch;

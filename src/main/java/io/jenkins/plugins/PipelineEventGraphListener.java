@@ -106,10 +106,10 @@ public class PipelineEventGraphListener implements GraphListener {
                 .timestamp(run.getTime())
                 .error(Optional.ofNullable(flowNode.getError()).map(ErrorAction::getError))
                 //.gitUrl(checkoutAction.map(CheckoutAction::getRepoUrl).orElse(null))
-                .gitUrl(getGitRepo(run).map(URIish::toString).orElse(null))
-                .branch(checkoutAction.map(CheckoutAction::getBranch).orElse("null"))
-                .commitId(checkoutAction.map(CheckoutAction::getCommitId).orElse("null"))
-                .commitMessage(checkoutAction.map(CheckoutAction::getCommitMessage).orElse("null"))
+                .gitUrl(getGitRepo(run).map(URIish::toString).orElse(""))
+                .branch(checkoutAction.map(CheckoutAction::getBranch).orElse(""))
+                .commitId(checkoutAction.map(CheckoutAction::getCommitId).orElse(""))
+                .commitMessage(checkoutAction.map(CheckoutAction::getCommitMessage).orElse(""))
                 .committers(checkoutAction.map(CheckoutAction::getCommitters).orElse(emptyCommitters));
         return event;
     }
