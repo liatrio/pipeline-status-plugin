@@ -7,6 +7,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.jenkins.plugins.PipelineEvent;
 import io.jenkins.plugins.kubernetes.model.LiatrioV1Build;
@@ -19,6 +20,7 @@ public class LiatrioV1BuildMapper {
   public static final String LIATRIO_GROUP = "stable.liatr.io";
   public static final String LIATRIO_VERSION = "v1";
   public static final String KIND = "Build";
+
 
   public static LiatrioV1Build asBuild(PipelineEvent event) {
     LiatrioV1Pipeline pipeline = parseGitUrl(event.getGitUrl());
@@ -77,6 +79,12 @@ public class LiatrioV1BuildMapper {
               .org(m.group(4));
         }
       }
+    } else {
+      return pipeline.type(LiatrioV1PipelineType.github)
+      .url("")
+      .name("")
+      .org("");
+        
     }
 
     return pipeline;
