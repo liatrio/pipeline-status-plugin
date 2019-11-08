@@ -151,11 +151,12 @@ public class V1EventController implements PipelineEventHandler {
     LiatrioV1ResultType type = pipelineEvent.getError()
     .map(t -> LiatrioV1ResultType.fail)
     .orElse(LiatrioV1ResultType.success);
-    type.toString();
-    if (type.toString() == "fail"){
-      return "Warning";
-    } else {
-      return "Normal";
+
+    switch (type) {
+      case fail:
+        return "Warning";
+      default:
+        return "Normal";
     }
   }
  

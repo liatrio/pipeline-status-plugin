@@ -1,20 +1,28 @@
 pipeline {
-  agent any
-  stages {
-    stage('Maven Package and Deploy') {
-      steps {
-        sh "echo 'hello'"
-      }
+    agent {
+        label "lead-toolchain-maven" 
     }
-    stage('World stage') {
-      steps {
-        sh "echo 'world'"
-      }
+    stages {
+        stage('Test & Package Artifact') {
+            when {
+                branch 'master'
+            }
+            steps {
+                container('maven') {
+                    sh "make build"
+                }
+            }
+        }
+        stage('Deploy') {
+            when {
+                branch 'master'
+            }
+            steps {
+                container('maven') {
+                    sh "make deploy" 
+                }
+            }
+        }
     }
-    stage('Print Env') {
-      steps {
-        sh "printenv"
-      }
-    }
-  }
 }
+
