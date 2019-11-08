@@ -3,6 +3,7 @@ package io.jenkins.plugins;
 import hudson.*;
 import hudson.model.*;
 import hudson.model.Queue;
+import hudson.plugins.git.GitSCM;
 import hudson.util.LogTaskListener;
 
 import org.jenkinsci.plugins.workflow.actions.ErrorAction;
@@ -12,6 +13,7 @@ import org.jenkinsci.plugins.workflow.flow.*;
 import org.jenkinsci.plugins.workflow.graph.FlowEndNode;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.graph.FlowStartNode;
+import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
@@ -21,6 +23,7 @@ import net.sf.json.JSONObject;
 
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 
+import org.eclipse.jgit.transport.URIish;
 import org.jenkinsci.plugins.pipeline.modeldefinition.actions.ExecutionModelAction;
 import org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTEnvironment;
 import org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKeyValueOrMethodCallPair;
@@ -33,6 +36,7 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStages;
 import java.io.*;
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import java.util.logging.Level;
 
 @Extension
@@ -91,6 +95,8 @@ public class PipelineEventGraphListener implements GraphListener {
         TaskListener taskListener = new LogTaskListener(logger, Level.INFO);
         EnvVars envVars = run.getEnvironment(taskListener);
         Optional<CheckoutAction> checkoutAction = Optional.ofNullable(run.getAction(CheckoutAction.class));
+
+        List<String> emptyCommitters = new ArrayList<>();
         PipelineEvent event = 
             new PipelineEvent()
                 .product(envVars.get("product","unknown"))
@@ -99,13 +105,26 @@ public class PipelineEventGraphListener implements GraphListener {
                 .buildId(run.getId())
                 .timestamp(run.getTime())
                 .error(Optional.ofNullable(flowNode.getError()).map(ErrorAction::getError))
-                .branch(checkoutAction.map(CheckoutAction::getRepoUrl).orElse(null))
-                .branch(checkoutAction.map(CheckoutAction::getBranch).orElse(null))
-                .commitId(checkoutAction.map(CheckoutAction::getCommitId).orElse(null))
-                .commitMessage(checkoutAction.map(CheckoutAction::getCommitMessage).orElse(null))
-                .committers(checkoutAction.map(CheckoutAction::getCommitters).orElse(null));
+                //.gitUrl(checkoutAction.map(CheckoutAction::getRepoUrl).orElse(null))
+                .gitUrl(getGitRepo(run).map(URIish::toString).orElse(null))
+                .branch(checkoutAction.map(CheckoutAction::getBranch).orElse("null"))
+                .commitId(checkoutAction.map(CheckoutAction::getCommitId).orElse("null"))
+                .commitMessage(checkoutAction.map(CheckoutAction::getCommitMessage).orElse("null"))
+                .committers(checkoutAction.map(CheckoutAction::getCommitters).orElse(emptyCommitters));
         return event;
     }
+
+    private Optional<URIish> getGitRepo(Run<?, ?> run) {    
+        Optional<URIish> uri =     
+          Stream.of(run.getParent())    
+                .filter(WorkflowJob.class::isInstance).map(WorkflowJob.class::cast)    
+                .map(w -> w.getSCMs()).flatMap(Collection::stream)    
+                .filter(GitSCM.class::isInstance).map(GitSCM.class::cast)    
+                .map(g -> g.getRepositories()).flatMap(List::stream)    
+                .map(r -> r.getURIs()).flatMap(List::stream)    
+                .findFirst();
+        return uri;    
+    }    
 
     private StageEvent asStageEvent(FlowNode flowNode) throws IOException, InterruptedException {
         String stageName = flowNode.getDisplayName();
@@ -149,16 +168,17 @@ public class PipelineEventGraphListener implements GraphListener {
 
     protected static List<String> getDeclarativeStages(Run<?, ?> run) {
         ExecutionModelAction executionModelAction = run.getAction(ExecutionModelAction.class);
+        List<String> emptyStages = new ArrayList<>();
         if (null == executionModelAction) {
-            return null;
+            return emptyStages;
         }
         ModelASTStages stages = executionModelAction.getStages();
         if (null == stages) {
-            return null;
+            return emptyStages;
         }
         List<ModelASTStage> stageList = stages.getStages();
         if (null == stageList) {
-            return null;
+            return emptyStages;
         }
         return convertList(stageList);
     }

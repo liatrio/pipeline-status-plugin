@@ -1,5 +1,9 @@
 package io.jenkins.plugins.kubernetes.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+@JsonInclude(Include.NON_NULL)
 public class LiatrioV1Pipeline {
   private String host = null;
 
