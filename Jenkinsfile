@@ -4,6 +4,9 @@ pipeline {
     }
     stages {
         stage('Test & Package Artifact') {
+            when {
+                branch 'master'
+            }
             steps {
                 container('maven-test') {
                     sh "make build"
@@ -11,6 +14,9 @@ pipeline {
             }
         }
         stage('Deploy') {
+            when {
+                branch 'master'
+            }
             steps {
                 container('maven-test') {
                     sh "make deploy" 
