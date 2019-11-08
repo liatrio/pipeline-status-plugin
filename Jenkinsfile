@@ -12,7 +12,7 @@ pipeline {
         }
         stage('Deploy') {
             steps {
-                container('maven') {
+                container('maven-test') {
                     sh "make deploy" 
                 }
             }
