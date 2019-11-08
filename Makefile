@@ -9,7 +9,9 @@ test:
 	@mvn test
 
 build:
-	@mvn clean install 
+	@mvn -B versions:set -DnewVersion=$(VERSION)
+	@mvn -B clean package
+	@mvn -B versions:revert
 
 run: 
 	@mvn hpi:run
