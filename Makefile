@@ -1,9 +1,12 @@
 HELM_REPOSITORY=https://artifactory.toolchain.lead.prod.liatr.io/artifactory/maven
 VERSION=$(shell git describe --tags --dirty | cut -c 2-)
+ARTIFACTORY_CREDS ?= $(shell cat /root/.docker/config.json | sed -n 's/.*auth.*"\(.*\)".*/\1/p'|base64 -d)
 
 version:
 	@echo "$(VERSION)"
 
+ac:
+	@echo "$(ARTIFACTORY_CREDS)"
 
 test:
 	@mvn test
