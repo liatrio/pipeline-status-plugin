@@ -11,12 +11,9 @@ pipeline {
             }
         }
         stage('Deploy') {
-            when {
-                branch 'master'
-            }
             steps {
                 container('maven') {
-                  echo "deploy"
+                    sh "make deploy" 
                 }
             }
         }
