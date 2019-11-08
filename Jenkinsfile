@@ -8,7 +8,7 @@ pipeline {
                 branch 'master'
             }
             steps {
-                container('maven-test') {
+                container('maven') {
                     sh "make build"
                 }
             }
@@ -18,7 +18,7 @@ pipeline {
                 branch 'master'
             }
             steps {
-                container('maven-test') {
+                container('maven') {
                     sh "make deploy" 
                 }
             }
