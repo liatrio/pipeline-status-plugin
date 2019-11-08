@@ -15,6 +15,7 @@
         <jenkins.version>2.176.1</jenkins.version>
         <java.level>8</java.level>
         <maven-hpi-plugin.injectedTestName>InjectedIT</maven-hpi-plugin.injectedTestName>
+        <spotbugs.threshold>high</spotbugs.threshold>
     </properties>
     <name>pipeline-status-plugin</name>
     <licenses>
@@ -164,4 +165,16 @@
             <url>https://repo.jenkins-ci.org/public/</url>
         </pluginRepository>
     </pluginRepositories>
+    <distributionManagement>
+    <repository>
+        <id>central</id>
+        <name>releases-artifactory-toolchain-lead-prod-liatrio-io</name>
+        <url>https://artifactory.toolchain.lead.prod.liatr.io/artifactory/maven</url>
+    </repository>
+    <snapshotRepository>
+        <id>snapshots</id>
+        <name>snapshots-artifactory-toolchain-lead-prod-liatrio-io</name>
+        <url>https://artifactory.toolchain.lead.prod.liatr.io/artifactory/maven</url>
+    </snapshotRepository>
+    </distributionManagement>
 </project>
