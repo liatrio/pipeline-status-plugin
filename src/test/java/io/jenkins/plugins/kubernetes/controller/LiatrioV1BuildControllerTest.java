@@ -45,6 +45,7 @@ public class LiatrioV1BuildControllerTest {
   public void testHandlePipelineStartEvent() {
     PipelineEvent event = 
       new PipelineEvent()
+        .buildName("xxxxxxx")
         .jobName("test-job-name")
         .timestamp(new Date())
         .product("chatops-dev")
@@ -91,6 +92,7 @@ public class LiatrioV1BuildControllerTest {
   public void testHandlePipelineEndEvent() {
     PipelineEvent event = 
       new PipelineEvent()
+        .buildName("xxxxxxx")
         .jobName("test-job-name")
         .timestamp(new Date())
         .product("chatops-dev")

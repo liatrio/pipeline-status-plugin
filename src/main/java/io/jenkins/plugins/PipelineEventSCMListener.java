@@ -37,7 +37,9 @@ public class PipelineEventSCMListener extends SCMListener {
       GitSCM gitSCM = (GitSCM) scm;
       BuildData buildData = gitSCM.getBuildData(build);
       CheckoutActionBuilder builder = new CheckoutActionBuilder(buildData);
-      build.addAction(workspace.act(builder));
+      CheckoutAction action = workspace.act(builder);
+      logger.fine(() -> "Attaching action: "+action);
+      build.addAction(action);
     }
   }
 

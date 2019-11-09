@@ -7,6 +7,7 @@ import java.util.Optional;
 
 public class PipelineEvent {
 
+  private String buildName;
   private String product;
   private String jobDisplayUrl;
   private String branch;
@@ -20,7 +21,8 @@ public class PipelineEvent {
   private List<String> stages;
   private Optional<Throwable> error;
 
-  public PipelineEvent(String product, String jobDisplayUrl, String branch, String gitUrl, Date timestamp, String jobName, String buildId, String commitId, String commitMessage, List<String> committers, List<String> stages, Optional<Throwable> error) {
+  public PipelineEvent(String buildName, String product, String jobDisplayUrl, String branch, String gitUrl, Date timestamp, String jobName, String buildId, String commitId, String commitMessage, List<String> committers, List<String> stages, Optional<Throwable> error) {
+    this.buildName = buildName;
     this.product = product;
     this.jobDisplayUrl = jobDisplayUrl;
     this.branch = branch;
@@ -33,6 +35,19 @@ public class PipelineEvent {
     this.committers = committers;
     this.stages = stages;
     this.error = error;
+  }
+
+  public String getBuildName() {
+    return this.buildName;
+  }
+
+  public void setBuildName(String buildName) {
+    this.buildName = buildName;
+  }
+
+  public PipelineEvent buildName(String buildName) {
+    this.buildName = buildName;
+    return this;
   }
 
   public Optional<Throwable> getError() {
