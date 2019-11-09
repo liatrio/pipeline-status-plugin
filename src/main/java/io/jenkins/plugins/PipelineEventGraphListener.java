@@ -36,7 +36,6 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTStages;
 import java.io.*;
 import java.util.*;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 import java.util.logging.Level;
 
 @Extension
@@ -95,36 +94,34 @@ public class PipelineEventGraphListener implements GraphListener {
         TaskListener taskListener = new LogTaskListener(logger, Level.INFO);
         EnvVars envVars = run.getEnvironment(taskListener);
         Optional<CheckoutAction> checkoutAction = Optional.ofNullable(run.getAction(CheckoutAction.class));
+        logger.fine(() -> "Got action: "+checkoutAction.orElse(null));
+
+        PipelineEventAction pipelineEventAction = 
+            Optional.ofNullable(run.getAction(PipelineEventAction.class))
+                    .orElseGet(() -> {
+                        PipelineEventAction pea = new PipelineEventAction();
+                        run.addAction(pea);
+                        return pea;
+                    });
+                    
 
         List<String> emptyCommitters = new ArrayList<>();
         PipelineEvent event = 
             new PipelineEvent()
+                .buildName(pipelineEventAction.getBuildName())
                 .product(envVars.get("product","unknown"))
                 .jobName(run.getParent().getFullName())
                 .stages(getDeclarativeStages(run))
                 .buildId(run.getId())
                 .timestamp(run.getTime())
                 .error(Optional.ofNullable(flowNode.getError()).map(ErrorAction::getError))
-                //.gitUrl(checkoutAction.map(CheckoutAction::getRepoUrl).orElse(null))
-                .gitUrl(getGitRepo(run).map(URIish::toString).orElse(""))
+                .gitUrl(checkoutAction.map(CheckoutAction::getRepoUrl).orElse(null))
                 .branch(checkoutAction.map(CheckoutAction::getBranch).orElse(""))
                 .commitId(checkoutAction.map(CheckoutAction::getCommitId).orElse(""))
                 .commitMessage(checkoutAction.map(CheckoutAction::getCommitMessage).orElse(""))
                 .committers(checkoutAction.map(CheckoutAction::getCommitters).orElse(emptyCommitters));
         return event;
     }
-
-    private Optional<URIish> getGitRepo(Run<?, ?> run) {    
-        Optional<URIish> uri =     
-          Stream.of(run.getParent())    
-                .filter(WorkflowJob.class::isInstance).map(WorkflowJob.class::cast)    
-                .map(w -> w.getSCMs()).flatMap(Collection::stream)    
-                .filter(GitSCM.class::isInstance).map(GitSCM.class::cast)    
-                .map(g -> g.getRepositories()).flatMap(List::stream)    
-                .map(r -> r.getURIs()).flatMap(List::stream)    
-                .findFirst();
-        return uri;    
-    }    
 
     private StageEvent asStageEvent(FlowNode flowNode) throws IOException, InterruptedException {
         String stageName = flowNode.getDisplayName();

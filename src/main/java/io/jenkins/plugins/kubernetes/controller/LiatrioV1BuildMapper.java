@@ -1,12 +1,7 @@
 package io.jenkins.plugins.kubernetes.controller;
 
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
-
 
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.jenkins.plugins.PipelineEvent;
@@ -25,12 +20,11 @@ public class LiatrioV1BuildMapper {
   public static LiatrioV1Build asBuild(PipelineEvent event) {
     LiatrioV1Pipeline pipeline = parseGitUrl(event.getGitUrl());
 
-    String name = buildName(event.getProduct(), pipeline.getOrg(), pipeline.getName(), String.valueOf(event.getTimestamp().getTime()));
     LiatrioV1Build build = 
       new LiatrioV1Build()
         .apiVersion(LIATRIO_GROUP+"/"+LIATRIO_VERSION).kind(KIND)
         .metadata(new ObjectMetaBuilder()
-          .withName(name)
+          .withName(event.getBuildName())
           .addToLabels("product", event.getProduct())
           .addToLabels("pipeline_org", pipeline.getOrg())
           .addToLabels("pipeline_name", pipeline.getName())
@@ -88,18 +82,5 @@ public class LiatrioV1BuildMapper {
     }
 
     return pipeline;
-  }
-
-  public static String buildName(String... parts) {
-    try {
-      MessageDigest md = MessageDigest.getInstance("SHA-1");
-      Stream.of(parts)
-            .filter(Objects::nonNull)
-            .map(String::getBytes)
-            .forEach(md::update);
-      return new BigInteger(1, md.digest()).toString(16);
-    } catch (Exception ex) {
-      throw new RuntimeException("Unable to create a name for build",ex);
-    }
   }
 }

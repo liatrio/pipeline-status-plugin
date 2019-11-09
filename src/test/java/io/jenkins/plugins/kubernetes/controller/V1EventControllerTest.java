@@ -43,6 +43,7 @@ public class V1EventControllerTest {
   public void testPipelineStartSuccess() {
     PipelineEvent event = 
       new PipelineEvent()
+          .buildName("xxxxxxx")
           .timestamp(new Date())
           .error(Optional.empty());
 
@@ -59,6 +60,7 @@ public class V1EventControllerTest {
   public void testPipelineStartFail() {
     PipelineEvent event = 
       new PipelineEvent()
+          .buildName("xxxxxxx")
           .timestamp(new Date())
           .error(Optional.of(new Throwable("error")));
 
@@ -75,6 +77,7 @@ public class V1EventControllerTest {
   public void testPipelineEndFail() {
     PipelineEvent event = 
       new PipelineEvent()
+          .buildName("xxxxxxx")
           .timestamp(new Date())
           .error(Optional.of(new Throwable("error")));
     controller.handlePipelineEndEvent(event);
@@ -91,6 +94,7 @@ public class V1EventControllerTest {
   public void testPipelineEndSuccess() {
     PipelineEvent event = 
       new PipelineEvent()
+          .buildName("xxxxxxx")
           .timestamp(new Date())
           .error(Optional.empty());
     controller.handlePipelineEndEvent(event);
@@ -104,7 +108,9 @@ public class V1EventControllerTest {
 
   @Test
   public void testPipelineTypeEndSuccess() {
-    PipelineEvent event = new PipelineEvent().timestamp(new Date()).error(Optional.empty());
+    PipelineEvent event = new PipelineEvent()
+          .buildName("xxxxxxx")
+          .timestamp(new Date()).error(Optional.empty());
     controller.handlePipelineEndEvent(event);
 
     NamespacedKubernetesClient client = server.getClient();
@@ -119,6 +125,7 @@ public class V1EventControllerTest {
   public void testStageEndSuccessWithMessage() {
     PipelineEvent event = 
       new PipelineEvent()
+          .buildName("xxxxxxx")
           .timestamp(new Date())
           .error(Optional.empty());
     StageEvent stageEvent = 
@@ -146,6 +153,7 @@ public class V1EventControllerTest {
   public void testAsEvent() {
     PipelineEvent pipelineEvent = 
       new PipelineEvent()
+          .buildName("xxxxxxx")
           .timestamp(new Date())
           .error(Optional.empty());
 

@@ -43,9 +43,9 @@ public class V1EventController implements PipelineEventHandler {
 
   @Override
   public void handlePipelineStartEvent(PipelineEvent pipelineEvent) {
-    logger.fine("PipelineStartEvent --> New event CR");
-    LiatrioV1Build build = LiatrioV1BuildMapper.asBuild(pipelineEvent);
-    build = Optional.ofNullable(crClient.builds().inNamespace(namespace).withName(build.getMetadata().getName()).get()).orElse(new LiatrioV1Build());
+    LiatrioV1Build build = Optional
+        .ofNullable(crClient.builds().inNamespace(namespace).withName(pipelineEvent.getBuildName()).get())
+        .orElse(new LiatrioV1Build());
 
     Event event = asEvent(pipelineEvent, "pipeline", build); 
     event.setMessage("pipeline "+pipelineEvent.getError()
@@ -56,14 +56,15 @@ public class V1EventController implements PipelineEventHandler {
                     .map(t -> LiatrioV1ResultType.fail)
                     .orElse(LiatrioV1ResultType.inProgress)
                     .toString());
+    logger.fine(() -> "PipelineStartEvent --> Create event "+event);
     client.events().inNamespace(this.namespace).create(event);
   }
   @Override
   public void handlePipelineEndEvent(PipelineEvent pipelineEvent) {
-    LiatrioV1Build build = LiatrioV1BuildMapper.asBuild(pipelineEvent);
-    build = Optional.ofNullable(crClient.builds().inNamespace(namespace).withName(build.getMetadata().getName()).get()).orElse(new LiatrioV1Build());
+    LiatrioV1Build build = Optional
+        .ofNullable(crClient.builds().inNamespace(namespace).withName(pipelineEvent.getBuildName()).get())
+        .orElse(new LiatrioV1Build());
  
-    logger.fine("PipelineEndEvent --> New event CR");
     Event event = asEvent(pipelineEvent, "pipeline", build);
     event.setMessage("pipeline "+pipelineEvent.getError()
                       .map(t -> LiatrioV1ResultType.fail)
@@ -73,14 +74,15 @@ public class V1EventController implements PipelineEventHandler {
                     .map(t -> LiatrioV1ResultType.fail)
                     .orElse(LiatrioV1ResultType.success)
                     .toString());
+    logger.fine(() -> "PipelineEndEvent --> Create event "+event);
     client.events().inNamespace(this.namespace).create(event);
   }
   @Override
   public void handleStageStartEvent(StageEvent stageEvent) {
-    LiatrioV1Build build = LiatrioV1BuildMapper.asBuild(stageEvent.getPipelineEvent());
-    build = Optional.ofNullable(crClient.builds().inNamespace(namespace).withName(build.getMetadata().getName()).get()).orElse(new LiatrioV1Build());
+    LiatrioV1Build build = Optional
+        .ofNullable(crClient.builds().inNamespace(namespace).withName(stageEvent.getPipelineEvent().getBuildName()).get())
+        .orElse(new LiatrioV1Build());
 
-    logger.fine("StageStartEvent --> New event CR for stage: "+stageEvent.getStageName());
     Event event = asEvent(stageEvent.getPipelineEvent(), "stage", build);
     event.setMessage("stage "+stageEvent.getPipelineEvent().getError()
                       .map(t -> LiatrioV1ResultType.fail)
@@ -91,14 +93,15 @@ public class V1EventController implements PipelineEventHandler {
                     .orElse(LiatrioV1ResultType.inProgress)
                     .toString());
     event.getMetadata().getAnnotations().put("stageName",stageEvent.getStageName());
+    logger.fine("StageStartEvent --> Create event "+event);
     client.events().inNamespace(this.namespace).create(event);
   }
   @Override
   public void handleStageEndEvent(StageEvent stageEvent) {
-    LiatrioV1Build build = LiatrioV1BuildMapper.asBuild(stageEvent.getPipelineEvent());
-    build = Optional.ofNullable(crClient.builds().inNamespace(namespace).withName(build.getMetadata().getName()).get()).orElse(new LiatrioV1Build());
+    LiatrioV1Build build = Optional
+        .ofNullable(crClient.builds().inNamespace(namespace).withName(stageEvent.getPipelineEvent().getBuildName()).get())
+        .orElse(new LiatrioV1Build());
 
-    logger.fine("StageEndEvent --> New event CR: "+stageEvent.getStageName());
     Event event = asEvent(stageEvent.getPipelineEvent(), "stage", build);
     event.setMessage("stage "+stageEvent.getPipelineEvent().getError()
                       .map(t -> LiatrioV1ResultType.fail)
@@ -110,6 +113,7 @@ public class V1EventController implements PipelineEventHandler {
                     .toString());
     event.getMetadata().getAnnotations().put("stageName",stageEvent.getStageName());
     event.getMetadata().getAnnotations().put("statusMessage",stageEvent.getStatusMessage());
+    logger.fine("StageEndEvent --> Create event "+event);
     client.events().inNamespace(this.namespace).create(event);
   }
 

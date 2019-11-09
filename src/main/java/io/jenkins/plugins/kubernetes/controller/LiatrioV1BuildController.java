@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.jenkins.plugins.PipelineEvent;
 import io.jenkins.plugins.PipelineEventHandler;
+import io.jenkins.plugins.StageEvent;
 import io.jenkins.plugins.kubernetes.model.LiatrioV1Build;
 import io.jenkins.plugins.kubernetes.model.LiatrioV1Client;
 import io.jenkins.plugins.kubernetes.model.LiatrioV1ResultType;
@@ -24,22 +25,36 @@ public class LiatrioV1BuildController implements PipelineEventHandler {
 
   @Override
   public void handlePipelineStartEvent(PipelineEvent event) {
-    logger.fine("PipelineStartEvent --> Creating build CR");
     LiatrioV1Build build = LiatrioV1BuildMapper.asBuild(event);
     build.getSpec()
          .result(LiatrioV1ResultType.inProgress);
-
+    logger.fine(() -> "PipelineStartEvent --> Creating build "+build);
     client.builds().inNamespace(this.namespace).createOrReplace(build);
   }
 
   @Override
   public void handlePipelineEndEvent(PipelineEvent event) {
-    logger.fine("PipelineEndEvent --> Updating build CR");
     LiatrioV1Build build = LiatrioV1BuildMapper.asBuild(event);
     build.getSpec()
          .endTime(new Date())
          .result(event.getError().map(t -> LiatrioV1ResultType.fail).orElse(LiatrioV1ResultType.success));
-
+    logger.fine(() -> "PipelineEndEvent --> Updating build "+build);
+    client.builds().inNamespace(this.namespace).createOrReplace(build);
+  }
+  @Override
+  public void handleStageStartEvent(StageEvent event) {
+    LiatrioV1Build build = LiatrioV1BuildMapper.asBuild(event.getPipelineEvent());
+    build.getSpec()
+         .result(LiatrioV1ResultType.inProgress);
+    logger.fine(() -> "StageStartEvent --> Creating build "+build);
+    client.builds().inNamespace(this.namespace).createOrReplace(build);
+  }
+  @Override
+  public void handleStageEndEvent(StageEvent event) {
+    LiatrioV1Build build = LiatrioV1BuildMapper.asBuild(event.getPipelineEvent());
+    build.getSpec()
+         .result(LiatrioV1ResultType.inProgress);
+    logger.fine(() -> "StageStartEvent --> Creating build "+build);
     client.builds().inNamespace(this.namespace).createOrReplace(build);
   }
 
