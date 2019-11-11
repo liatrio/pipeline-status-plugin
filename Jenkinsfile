@@ -3,13 +3,15 @@ pipeline {
         label "lead-toolchain-maven" 
     }
     stages {
-        stage('Test & Package Artifact') {
+        stage('Verify') {
             when {
-                branch 'master'
+                not {
+                    branch 'master'
+                }
             }
             steps {
                 container('maven') {
-                    sh "make build"
+                    sh "mvn -B clean verify"
                 }
             }
         }
@@ -19,7 +21,7 @@ pipeline {
             }
             steps {
                 container('maven') {
-                    sh "make deploy" 
+                    sh "mvn -B clean deploy" 
                 }
             }
         }
