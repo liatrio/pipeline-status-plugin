@@ -3,7 +3,6 @@ package io.jenkins.plugins;
 import hudson.*;
 import hudson.model.*;
 import hudson.model.Queue;
-import hudson.plugins.git.GitSCM;
 import hudson.util.LogTaskListener;
 
 import org.jenkinsci.plugins.workflow.actions.ErrorAction;
@@ -13,7 +12,6 @@ import org.jenkinsci.plugins.workflow.flow.*;
 import org.jenkinsci.plugins.workflow.graph.FlowEndNode;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.graph.FlowStartNode;
-import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
@@ -23,7 +21,6 @@ import net.sf.json.JSONObject;
 
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 
-import org.eclipse.jgit.transport.URIish;
 import org.jenkinsci.plugins.pipeline.modeldefinition.actions.ExecutionModelAction;
 import org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTEnvironment;
 import org.jenkinsci.plugins.pipeline.modeldefinition.ast.ModelASTKeyValueOrMethodCallPair;
@@ -66,20 +63,26 @@ public class PipelineEventGraphListener implements GraphListener {
     @Override
     public void onNewHead(FlowNode flowNode) {
         try {
-            if (isPipelineNode(flowNode)) {
-                PipelineEvent event = asPipelineEvent(flowNode);
-                if (flowNode.getClass() == FlowStartNode.class) {
-                    eventHandlers.forEach(h -> h.handlePipelineStartEvent(event));
-                } else if (flowNode.getClass() == FlowEndNode.class) {
-                    eventHandlers.forEach(h -> h.handlePipelineEndEvent(event));
-                }
-            } else if (isStageNode(flowNode)) {
-                StageEvent event = asStageEvent(flowNode);
+            Run<?, ?> run = runFor(flowNode.getExecution());
+            Optional<CheckoutAction> checkoutAction = Optional.ofNullable(run.getAction(CheckoutAction.class));
 
-                if (flowNode.getClass() == StepStartNode.class) {
-                    eventHandlers.forEach(h -> h.handleStageStartEvent(event));
-                } else if (flowNode.getClass() == StepEndNode.class) {
-                    eventHandlers.forEach(h -> h.handleStageEndEvent(event));
+            if (checkoutAction.isPresent()) {
+                if (isPipelineNode(flowNode)) {
+                    PipelineEvent event = asPipelineEvent(flowNode);
+                    if (flowNode.getClass() == FlowStartNode.class) {
+                        eventHandlers.forEach(h -> h.handlePipelineStartEvent(event));
+                    } else if (flowNode.getClass() == FlowEndNode.class) {
+                        eventHandlers.forEach(h -> h.handlePipelineEndEvent(event));
+                    }
+                } else if (isStageNode(flowNode)) {
+                    StageEvent event = asStageEvent(flowNode);
+                    if(event.getPipelineEvent().getIsNew()) {
+                        eventHandlers.forEach(h -> h.handlePipelineStartEvent(event.getPipelineEvent()));
+                    } else if (flowNode.getClass() == StepStartNode.class) {
+                        eventHandlers.forEach(h -> h.handleStageStartEvent(event));
+                    } else if (flowNode.getClass() == StepEndNode.class) {
+                        eventHandlers.forEach(h -> h.handleStageEndEvent(event));
+                    }
                 }
             }
         } catch (Exception e) {
@@ -96,19 +99,19 @@ public class PipelineEventGraphListener implements GraphListener {
         Optional<CheckoutAction> checkoutAction = Optional.ofNullable(run.getAction(CheckoutAction.class));
         logger.fine(() -> "Got action: "+checkoutAction.orElse(null));
 
-        PipelineEventAction pipelineEventAction = 
-            Optional.ofNullable(run.getAction(PipelineEventAction.class))
-                    .orElseGet(() -> {
-                        PipelineEventAction pea = new PipelineEventAction();
-                        run.addAction(pea);
-                        return pea;
-                    });
-                    
+        boolean isNew = false;
+        Optional<PipelineEventAction> pipelineEventAction = Optional.ofNullable(run.getAction(PipelineEventAction.class));
+        if(!pipelineEventAction.isPresent()) {
+            isNew = true;
+            pipelineEventAction = Optional.of(new PipelineEventAction());
+            run.addAction(pipelineEventAction.get());
+        }
 
         List<String> emptyCommitters = new ArrayList<>();
         PipelineEvent event = 
             new PipelineEvent()
-                .buildName(pipelineEventAction.getBuildName())
+                .isNew(isNew)
+                .buildName(pipelineEventAction.get().getBuildName())
                 .product(envVars.get("product","unknown"))
                 .jobName(run.getParent().getFullName())
                 .stages(getDeclarativeStages(run))

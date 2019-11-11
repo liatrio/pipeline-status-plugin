@@ -1,5 +1,7 @@
 package io.jenkins.plugins.kubernetes.controller;
 
+import java.math.BigInteger;
+import java.security.MessageDigest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,14 +22,24 @@ public class LiatrioV1BuildMapper {
   public static LiatrioV1Build asBuild(PipelineEvent event) {
     LiatrioV1Pipeline pipeline = parseGitUrl(event.getGitUrl());
 
+    String productPipelineHash = "";
+    try {
+      MessageDigest messageDigest = MessageDigest.getInstance("SHA-1");
+      messageDigest.reset();
+      messageDigest.update(event.getProduct().getBytes("UTF-8"));
+      messageDigest.update(pipeline.getUrl().getBytes("UTF-8"));
+      productPipelineHash = new BigInteger(1, messageDigest.digest()).toString(16);
+    } catch (Exception ex) {}
+
     LiatrioV1Build build = 
       new LiatrioV1Build()
         .apiVersion(LIATRIO_GROUP+"/"+LIATRIO_VERSION).kind(KIND)
         .metadata(new ObjectMetaBuilder()
           .withName(event.getBuildName())
           .addToLabels("product", event.getProduct())
-          .addToLabels("pipeline_org", pipeline.getOrg())
-          .addToLabels("pipeline_name", pipeline.getName())
+          .addToLabels("pipelineOrg", pipeline.getOrg())
+          .addToLabels("pipelineName", pipeline.getName())
+          .addToLabels("productPipelineHash", productPipelineHash)
           .addToLabels("timestamp", String.valueOf(event.getTimestamp().getTime()))
           .build())
         .spec(new LiatrioV1BuildSpec()

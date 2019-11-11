@@ -7,6 +7,7 @@ import java.util.Optional;
 
 public class PipelineEvent {
 
+  private boolean isNew;
   private String buildName;
   private String product;
   private String jobDisplayUrl;
@@ -21,7 +22,9 @@ public class PipelineEvent {
   private List<String> stages;
   private Optional<Throwable> error;
 
-  public PipelineEvent(String buildName, String product, String jobDisplayUrl, String branch, String gitUrl, Date timestamp, String jobName, String buildId, String commitId, String commitMessage, List<String> committers, List<String> stages, Optional<Throwable> error) {
+
+  public PipelineEvent(boolean isNew, String buildName, String product, String jobDisplayUrl, String branch, String gitUrl, Date timestamp, String jobName, String buildId, String commitId, String commitMessage, List<String> committers, List<String> stages, Optional<Throwable> error) {
+    this.isNew = isNew;
     this.buildName = buildName;
     this.product = product;
     this.jobDisplayUrl = jobDisplayUrl;
@@ -35,6 +38,23 @@ public class PipelineEvent {
     this.committers = committers;
     this.stages = stages;
     this.error = error;
+  }
+
+  public boolean isIsNew() {
+    return this.isNew;
+  }
+
+  public boolean getIsNew() {
+    return this.isNew;
+  }
+
+  public void setIsNew(boolean isNew) {
+    this.isNew = isNew;
+  }
+
+  public PipelineEvent isNew(boolean isNew) {
+    this.isNew = isNew;
+    return this;
   }
 
   public String getBuildName() {

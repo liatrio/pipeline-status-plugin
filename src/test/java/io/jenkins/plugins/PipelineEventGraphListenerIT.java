@@ -4,11 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.util.stream.Collectors;
-
-import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.junit.Rule;
@@ -27,7 +22,6 @@ import io.jenkins.plugins.kubernetes.model.LiatrioV1BuildList;
 import io.jenkins.plugins.kubernetes.model.LiatrioV1BuildSpec;
 import io.jenkins.plugins.kubernetes.model.LiatrioV1Client;
 import io.jenkins.plugins.kubernetes.model.LiatrioV1ResultType;
-import jline.internal.InputStreamReader;;
 
 public class PipelineEventGraphListenerIT {
     @Rule 
@@ -81,10 +75,10 @@ public class PipelineEventGraphListenerIT {
       envVars.put("product", "sample-product");
       j.jenkins.getGlobalNodeProperties().add(prop);
 
-      String sampleJenkinsfile = getResource("Jenkinsfile.simple");
       // Create a new Pipeline with the given (Scripted Pipeline) definition
       WorkflowJob project = j.createProject(WorkflowJob.class);
-      project.setDefinition(new CpsFlowDefinition(sampleJenkinsfile, true));
+      GitSCM scm = new GitSCM("https://github.com/liatrio/pipeline-status-plugin.git");
+      project.setDefinition(new CpsScmFlowDefinition(scm, "src/test/resources/Jenkinsfile.simple"));
 
       NamespacedKubernetesClient client = server.getClient().inNamespace("default");
       PipelineEventGraphListener.setClient(client);
@@ -103,7 +97,7 @@ public class PipelineEventGraphListenerIT {
 
       EventList events = client.events().list();
       assertNotNull(events);
-      assertEquals(6, events.getItems().size());
+      assertEquals(8, events.getItems().size());
 
       Event stage2EndEvent = events
         .getItems()
@@ -118,13 +112,5 @@ public class PipelineEventGraphListenerIT {
       assertEquals("statusMessage", "sample status message", stage2EndEvent.getMetadata().getAnnotations().get("statusMessage"));
 
       liatrioClient.close();
-    }
-
-    private String getResource(String name) throws Exception {
-      InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream("Jenkinsfile.simple");
-      BufferedReader br = new BufferedReader(new InputStreamReader(is));
-      String rtn = br.lines().collect(Collectors.joining(System.lineSeparator()));
-      br.close();
-      return rtn;
     }
 }

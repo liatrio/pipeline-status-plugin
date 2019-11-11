@@ -65,8 +65,8 @@ public class LiatrioV1BuildControllerTest {
     LiatrioV1Build build = builds.getItems().get(0);
     Map<String, String> labels = build.getMetadata().getLabels();
     assertEquals("build timestamp", String.valueOf(event.getTimestamp().getTime()), labels.get("timestamp"));
-    assertEquals("build pipeline_name", "springtrader-test", labels.get("pipeline_name"));
-    assertEquals("build pipeline_org", "liatrio", labels.get("pipeline_org"));
+    assertEquals("build pipelineName", "springtrader-test", labels.get("pipelineName"));
+    assertEquals("build pipelineOrg", "liatrio", labels.get("pipelineOrg"));
     assertEquals("build product", "chatops-dev", labels.get("product"));
 
     LiatrioV1BuildSpec spec = build.getSpec();
@@ -119,8 +119,8 @@ public class LiatrioV1BuildControllerTest {
     LiatrioV1Build build = builds.getItems().get(0);
     Map<String, String> labels = build.getMetadata().getLabels();
     assertEquals("build timestamp", String.valueOf(event.getTimestamp().getTime()), labels.get("timestamp"));
-    assertEquals("build pipeline_name", "springtrader-test", labels.get("pipeline_name"));
-    assertEquals("build pipeline_org", "liatrio", labels.get("pipeline_org"));
+    assertEquals("build pipelineName", "springtrader-test", labels.get("pipelineName"));
+    assertEquals("build pipelineOrg", "liatrio", labels.get("pipelineOrg"));
     assertEquals("build product", "chatops-dev", labels.get("product"));
 
     LiatrioV1BuildSpec spec = build.getSpec();
