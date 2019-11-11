@@ -1,5 +1,6 @@
 package io.jenkins.plugins;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 
@@ -7,7 +8,8 @@ import java.util.Objects;
 import hudson.model.InvisibleAction;
 
 
-public class CheckoutAction extends InvisibleAction {
+public class CheckoutAction extends InvisibleAction implements Serializable {
+  private static final long serialVersionUID = -1377012968461044454L;
   private final String repoUrl;
   private final String branch;
   private final String commitId;
