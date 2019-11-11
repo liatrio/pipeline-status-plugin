@@ -1,7 +1,10 @@
 package io.jenkins.plugins.kubernetes.controller;
 
+<<<<<<< HEAD
 import java.math.BigInteger;
 import java.security.MessageDigest;
+=======
+>>>>>>> origin/master
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
