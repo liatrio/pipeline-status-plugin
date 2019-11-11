@@ -43,8 +43,8 @@ public class LiatrioV1BuildMapperTest {
     Map<String, String> labels = build.getMetadata().getLabels();
     assertThat("labels", labels, is(notNullValue()));
     assertThat("labels.product", labels.get("product"), is("chatops-dev"));
-    assertThat("labels.pipeline_org", labels.get("pipeline_org"), is("liatrio"));
-    assertThat("labels.pipeline_name", labels.get("pipeline_name"), is("springtrader-test"));
+    assertThat("labels.pipelineOrg", labels.get("pipelineOrg"), is("liatrio"));
+    assertThat("labels.pipelineName", labels.get("pipelineName"), is("springtrader-test"));
     assertThat("labels.timestamp", labels.get("timestamp"), not(is("")));
 
     LiatrioV1BuildSpec spec = build.getSpec();
