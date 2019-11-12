@@ -121,7 +121,7 @@ public class V1EventController implements PipelineEventHandler {
   
     Map<String, String> labels = new HashMap<>();
     labels.put("type", type);
-    labels.put("correlationid", build.getMetadata().getName());
+    labels.put("correlationId", build.getMetadata().getName());
     Map<String, String> annotations = new HashMap<>();
     String name = UUID.randomUUID().toString().toLowerCase();
     Event event = 

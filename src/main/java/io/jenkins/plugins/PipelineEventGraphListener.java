@@ -114,6 +114,7 @@ public class PipelineEventGraphListener implements GraphListener {
                 .buildName(pipelineEventAction.get().getBuildName())
                 .product(envVars.get("product","unknown"))
                 .jobName(run.getParent().getFullName())
+                .jobDisplayUrl(run.getParent().getAbsoluteUrl()+run.getNumber()+'/')
                 .stages(getDeclarativeStages(run))
                 .buildId(run.getId())
                 .timestamp(run.getTime())
