@@ -35,7 +35,7 @@ public class LiatrioV1BuildMapperTest {
     LiatrioV1Build build = LiatrioV1BuildMapper.asBuild(event);
 
     assertThat("build", build, is(notNullValue()));
-    assertThat("build.apiVersion", build.getApiVersion(), is(equalTo("stable.liatr.io/v1")));
+    assertThat("build.apiVersion", build.getApiVersion(), is(equalTo("sdm.liatr.io/v1alpha1")));
     assertThat("build.kind", build.getKind(), is(equalTo("Build")));
     //assertThat("build.meta.name", build.getMetadata().getName(),
     //    is(equalTo("chatops-dev-liatrio-springtrader-test-12345678-2")));

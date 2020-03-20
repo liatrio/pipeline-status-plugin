@@ -13,8 +13,8 @@ import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
 
 public class LiatrioV1Client extends BaseClient implements Client {
-  public static final String LIATRIO_GROUP = "stable.liatr.io";
-  public static final String LIATRIO_VERSION = "v1";
+  public static final String LIATRIO_GROUP = "sdm.liatr.io";
+  public static final String LIATRIO_VERSION = "v1alpha1";
   public static final String KIND = "Build";
   public static final String NAME_SINGULAR = KIND.toLowerCase();
   public static final String NAME_PLURAL = NAME_SINGULAR+"s";

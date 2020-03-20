@@ -164,7 +164,7 @@ public class V1EventControllerTest {
     metadata.setResourceVersion("499779");
     metadata.setUid("e6d57ef8-017e-11ea-ba85-025000000001");
     
-    build.setApiVersion("stable.liatr.io/v1");
+    build.setApiVersion("sdm.liatr.io/v1alpha1");
     build.setKind("Build");
     build.setMetadata(metadata);
       
@@ -179,7 +179,7 @@ public class V1EventControllerTest {
     assertEquals("event.source.component", event.getSource().getComponent(), "sdm.lead.liatrio/operator-jenkins");
     assertNotEquals("event.involvedobject.name", "", event.getInvolvedObject().getName());
     assertEquals("event.involvedobject.namespace", event.getInvolvedObject().getNamespace(), "default");
-    assertEquals("event.involvedobject.apiversion",event.getInvolvedObject().getApiVersion(), "stable.liatr.io/v1");
+    assertEquals("event.involvedobject.apiversion",event.getInvolvedObject().getApiVersion(), "sdm.liatr.io/v1alpha1");
     assertEquals("event.involvedobject.kind", event.getInvolvedObject().getKind(), "Build");
     assertEquals("event.involvedobject.resourceversion", event.getInvolvedObject().getResourceVersion(), "499779");
     assertEquals("event.involvedobject.uid", event.getInvolvedObject().getUid(), "e6d57ef8-017e-11ea-ba85-025000000001");
