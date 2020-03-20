@@ -14,8 +14,8 @@ import io.jenkins.plugins.kubernetes.model.LiatrioV1Pipeline;
 import io.jenkins.plugins.kubernetes.model.LiatrioV1PipelineType;
 
 public class LiatrioV1BuildMapper {
-  public static final String LIATRIO_GROUP = "stable.liatr.io";
-  public static final String LIATRIO_VERSION = "v1";
+  public static final String LIATRIO_GROUP = "sdm.liatr.io";
+  public static final String LIATRIO_VERSION = "v1alpha1";
   public static final String KIND = "Build";
 
 
