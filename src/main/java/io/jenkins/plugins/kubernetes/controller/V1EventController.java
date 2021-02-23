@@ -36,7 +36,7 @@ public class V1EventController implements PipelineEventHandler {
         this.namespace = Optional.ofNullable(client.getNamespace()).orElse("default");
     }
 
-    private final int MAX_GET_BUILD_ATTEMPTS = 5;
+    private final int MAX_GET_BUILD_ATTEMPTS = 10;
 
     private LiatrioV1Build getBuildFromName(String buildName) {
         LiatrioV1Build build;
@@ -47,7 +47,7 @@ public class V1EventController implements PipelineEventHandler {
                     .ofNullable(crClient.builds().inNamespace(namespace).withName(buildName).get())
                     .orElseGet(() -> {
                         try {
-                            Thread.sleep(250);
+                            Thread.sleep(500);
                         } catch (InterruptedException e) {
                             logger.warning(e.getMessage());
                         }
