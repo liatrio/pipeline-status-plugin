@@ -13,6 +13,7 @@ import io.jenkins.plugins.kubernetes.model.LiatrioV1ResultType;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 
@@ -35,8 +36,11 @@ public class V1EventController implements PipelineEventHandler {
         this.namespace = Optional.ofNullable(client.getNamespace()).orElse("default");
     }
 
+    private final int MAX_GET_BUILD_ATTEMPTS = 5;
+
     private LiatrioV1Build getBuildFromName(String buildName) {
         LiatrioV1Build build;
+        AtomicInteger count = new AtomicInteger();
 
         do {
             build = Optional
@@ -48,7 +52,13 @@ public class V1EventController implements PipelineEventHandler {
                             logger.warning(e.getMessage());
                         }
 
-                        return null;
+                        if (count.get() < MAX_GET_BUILD_ATTEMPTS) {
+                            count.getAndIncrement();
+
+                            return null;
+                        } else {
+                            return new LiatrioV1Build();
+                        }
                     });
         } while (build == null);
 
