@@ -183,7 +183,7 @@ public class V1EventController implements PipelineEventHandler {
         }
     }
 
-    public static String dateToString(Date d) {
+    public synchronized static String dateToString(Date d) {
         return df.format(d);
     }
 }
