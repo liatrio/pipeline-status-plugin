@@ -28,7 +28,7 @@ public class LiatrioV1BuildController implements PipelineEventHandler {
     LiatrioV1Build build = LiatrioV1BuildMapper.asBuild(event);
     build.getSpec()
          .result(LiatrioV1ResultType.inProgress);
-    logger.fine(() -> "PipelineStartEvent --> Creating build "+build);
+    logger.info(() -> "PipelineStartEvent --> Creating build "+build);
     client.builds().inNamespace(this.namespace).createOrReplace(build);
   }
 
@@ -38,7 +38,7 @@ public class LiatrioV1BuildController implements PipelineEventHandler {
     build.getSpec()
          .endTime(new Date())
          .result(event.getError().map(t -> LiatrioV1ResultType.fail).orElse(LiatrioV1ResultType.success));
-    logger.fine(() -> "PipelineEndEvent --> Updating build "+build);
+    logger.info(() -> "PipelineEndEvent --> Updating build "+build);
     client.builds().inNamespace(this.namespace).createOrReplace(build);
   }
   @Override
@@ -46,7 +46,7 @@ public class LiatrioV1BuildController implements PipelineEventHandler {
     LiatrioV1Build build = LiatrioV1BuildMapper.asBuild(event.getPipelineEvent());
     build.getSpec()
          .result(LiatrioV1ResultType.inProgress);
-    logger.fine(() -> "StageStartEvent --> Creating build "+build);
+    logger.info(() -> "StageStartEvent --> Creating build "+build);
     client.builds().inNamespace(this.namespace).createOrReplace(build);
   }
   @Override
@@ -54,7 +54,7 @@ public class LiatrioV1BuildController implements PipelineEventHandler {
     LiatrioV1Build build = LiatrioV1BuildMapper.asBuild(event.getPipelineEvent());
     build.getSpec()
          .result(LiatrioV1ResultType.inProgress);
-    logger.fine(() -> "StageStartEvent --> Creating build "+build);
+    logger.info(() -> "StageStartEvent --> Creating build "+build);
     client.builds().inNamespace(this.namespace).createOrReplace(build);
   }
 

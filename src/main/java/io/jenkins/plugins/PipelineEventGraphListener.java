@@ -63,6 +63,7 @@ public class PipelineEventGraphListener implements GraphListener {
     @Override
     public void onNewHead(FlowNode flowNode) {
         try {
+            logger.info("on new head");
             Run<?, ?> run = runFor(flowNode.getExecution());
             Optional<CheckoutAction> checkoutAction = Optional.ofNullable(run.getAction(CheckoutAction.class));
 
@@ -97,7 +98,7 @@ public class PipelineEventGraphListener implements GraphListener {
         TaskListener taskListener = new LogTaskListener(logger, Level.INFO);
         EnvVars envVars = run.getEnvironment(taskListener);
         Optional<CheckoutAction> checkoutAction = Optional.ofNullable(run.getAction(CheckoutAction.class));
-        logger.fine(() -> "Got action: "+checkoutAction.orElse(null));
+        logger.info(() -> "Got action: "+checkoutAction.orElse(null));
 
         boolean isNew = false;
         Optional<PipelineEventAction> pipelineEventAction = Optional.ofNullable(run.getAction(PipelineEventAction.class));

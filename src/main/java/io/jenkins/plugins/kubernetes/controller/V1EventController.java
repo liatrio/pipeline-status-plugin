@@ -56,7 +56,7 @@ public class V1EventController implements PipelineEventHandler {
                     .map(t -> LiatrioV1ResultType.fail)
                     .orElse(LiatrioV1ResultType.inProgress)
                     .toString());
-    logger.fine(() -> "PipelineStartEvent --> Create event "+event);
+    logger.info(() -> "PipelineStartEvent --> Create event "+event);
     client.events().inNamespace(this.namespace).create(event);
   }
   @Override
@@ -74,7 +74,7 @@ public class V1EventController implements PipelineEventHandler {
                     .map(t -> LiatrioV1ResultType.fail)
                     .orElse(LiatrioV1ResultType.success)
                     .toString());
-    logger.fine(() -> "PipelineEndEvent --> Create event "+event);
+    logger.info(() -> "PipelineEndEvent --> Create event "+event);
     client.events().inNamespace(this.namespace).create(event);
   }
   @Override
@@ -93,7 +93,7 @@ public class V1EventController implements PipelineEventHandler {
                     .orElse(LiatrioV1ResultType.inProgress)
                     .toString());
     event.getMetadata().getAnnotations().put("stageName",stageEvent.getStageName());
-    logger.fine("StageStartEvent --> Create event "+event);
+    logger.info("StageStartEvent --> Create event "+event);
     client.events().inNamespace(this.namespace).create(event);
   }
   @Override
@@ -113,7 +113,7 @@ public class V1EventController implements PipelineEventHandler {
                     .toString());
     event.getMetadata().getAnnotations().put("stageName",stageEvent.getStageName());
     event.getMetadata().getAnnotations().put("statusMessage",stageEvent.getStatusMessage());
-    logger.fine("StageEndEvent --> Create event "+event);
+    logger.info("StageEndEvent --> Create event "+event);
     client.events().inNamespace(this.namespace).create(event);
   }
 
