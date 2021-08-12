@@ -12,3 +12,5 @@ coverage/
 .classpath
 .factorypath
 .vscode
+
+.idea/

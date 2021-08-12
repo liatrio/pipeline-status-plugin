@@ -42,12 +42,12 @@ public class PipelineEventGraphListener implements GraphListener {
 
     private final ArrayList<PipelineEventHandler> eventHandlers = new ArrayList<>();
 
-    
+
     public PipelineEventGraphListener() {
         eventHandlers.add(new LiatrioV1BuildController(getClient()));
         eventHandlers.add(new V1EventController(getClient()));
     }
-    
+
 
     public static void setClient(NamespacedKubernetesClient client) {
         PipelineEventGraphListener.client = client;
@@ -70,18 +70,18 @@ public class PipelineEventGraphListener implements GraphListener {
                 if (isPipelineNode(flowNode)) {
                     PipelineEvent event = asPipelineEvent(flowNode);
                     if (flowNode.getClass() == FlowStartNode.class) {
-                        eventHandlers.forEach(h -> h.handlePipelineStartEvent(event));
+                        eventHandlers.stream().forEachOrdered(h -> h.handlePipelineStartEvent(event));
                     } else if (flowNode.getClass() == FlowEndNode.class) {
-                        eventHandlers.forEach(h -> h.handlePipelineEndEvent(event));
+                        eventHandlers.stream().forEachOrdered(h -> h.handlePipelineEndEvent(event));
                     }
                 } else if (isStageNode(flowNode)) {
                     StageEvent event = asStageEvent(flowNode);
                     if(event.getPipelineEvent().getIsNew()) {
-                        eventHandlers.forEach(h -> h.handlePipelineStartEvent(event.getPipelineEvent()));
+                        eventHandlers.stream().forEachOrdered(h -> h.handlePipelineStartEvent(event.getPipelineEvent()));
                     } else if (flowNode.getClass() == StepStartNode.class) {
-                        eventHandlers.forEach(h -> h.handleStageStartEvent(event));
+                        eventHandlers.stream().forEachOrdered(h -> h.handleStageStartEvent(event));
                     } else if (flowNode.getClass() == StepEndNode.class) {
-                        eventHandlers.forEach(h -> h.handleStageEndEvent(event));
+                        eventHandlers.stream().forEachOrdered(h -> h.handleStageEndEvent(event));
                     }
                 }
             }
@@ -108,7 +108,7 @@ public class PipelineEventGraphListener implements GraphListener {
         }
 
         List<String> emptyCommitters = new ArrayList<>();
-        PipelineEvent event = 
+        PipelineEvent event =
             new PipelineEvent()
                 .isNew(isNew)
                 .buildName(pipelineEventAction.get().getBuildName())
@@ -139,7 +139,7 @@ public class PipelineEventGraphListener implements GraphListener {
             }
 
         }
-        StageEvent event = 
+        StageEvent event =
             new StageEvent()
                 .pipelineEvent(asPipelineEvent(flowNode))
                 .statusMessage(stageMessage)
@@ -155,9 +155,9 @@ public class PipelineEventGraphListener implements GraphListener {
         // Check for StepStartNode with stepName == 'Stage'
         if (flowNode instanceof StepStartNode) {
             StepStartNode stepNode = (StepStartNode) flowNode;
-            return (stepNode.isBody() && stepNode.getStepName().equals("Stage")); 
-        } 
-        
+            return (stepNode.isBody() && stepNode.getStepName().equals("Stage"));
+        }
+
         // Check for StepEndNode with a startNode that isStageNode
         if (flowNode instanceof StepEndNode) {
             StepEndNode endNode = (StepEndNode) flowNode;
