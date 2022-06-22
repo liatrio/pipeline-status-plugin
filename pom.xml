@@ -81,7 +81,7 @@
         <dependency>
             <groupId>io.fabric8</groupId>
             <artifactId>kubernetes-client</artifactId>
-            <version>4.7.0</version>
+            <version>4.7.2</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
